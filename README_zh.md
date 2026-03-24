@@ -20,13 +20,42 @@
 - **丰富诊断** — 完整的命令输出、环境快照、耗时记录，存储在 `~/.isetup/logs/`
 - **试运行模式** — 预览所有命令，不实际执行
 
+## 安装
+
+**一行命令安装（Linux / macOS）：**
+
+```bash
+curl -fsSL https://github.com/host452b/isetup/releases/latest/download/isetup_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz | tar xz -C /usr/local/bin isetup
+```
+
+**Windows (PowerShell)：**
+
+```powershell
+irm "https://github.com/host452b/isetup/releases/latest/download/isetup_0.1.0_windows_amd64.zip" -OutFile isetup.zip; Expand-Archive isetup.zip -DestinationPath .; Move-Item isetup.exe $env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\; Remove-Item isetup.zip
+```
+
+**Go install：**
+
+```bash
+go install github.com/isetup-dev/isetup@latest
+```
+
+**从源码构建：**
+
+```bash
+git clone https://github.com/host452b/isetup.git && cd isetup && go build -o isetup .
+```
+
+**验证：**
+
+```bash
+isetup version
+```
+
 ## 快速开始
 
 ```bash
-# 从源码构建
-go build -o isetup .
-
-# 生成默认配置
+# 生成默认配置（可选 — 没有配置文件也能用内置默认模板）
 isetup init
 
 # 编辑你的配置

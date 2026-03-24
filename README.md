@@ -20,13 +20,42 @@ New machine? `isetup install`. Done.
 - **Rich diagnostics** — full command output, environment snapshot, and timing in `~/.isetup/logs/`
 - **Dry-run mode** — preview all commands without executing
 
+## Install
+
+**One-liner (Linux / macOS):**
+
+```bash
+curl -fsSL https://github.com/host452b/isetup/releases/latest/download/isetup_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz | tar xz -C /usr/local/bin isetup
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm "https://github.com/host452b/isetup/releases/latest/download/isetup_0.1.0_windows_amd64.zip" -OutFile isetup.zip; Expand-Archive isetup.zip -DestinationPath .; Move-Item isetup.exe $env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\; Remove-Item isetup.zip
+```
+
+**Go install:**
+
+```bash
+go install github.com/isetup-dev/isetup@latest
+```
+
+**From source:**
+
+```bash
+git clone https://github.com/host452b/isetup.git && cd isetup && go build -o isetup .
+```
+
+**Verify:**
+
+```bash
+isetup version
+```
+
 ## Quick Start
 
 ```bash
-# Build from source
-go build -o isetup .
-
-# Generate default config
+# Generate default config (optional — isetup works without it)
 isetup init
 
 # Edit your config
