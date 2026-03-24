@@ -17,7 +17,9 @@ New machine? `isetup install`. Done.
 - **Template variables** — `{{.Arch}}`, `{{.OS}}`, `{{.Home}}` in shell commands for arch-aware downloads
 - **Dependency ordering** — `depends_on` ensures tools install in the right order
 - **Conditional profiles** — `when: has_gpu` skips GPU tools on machines without a GPU
+- **Skip installed** — auto-detects tools already in PATH, skips them (use `-f` to force reinstall)
 - **Rich diagnostics** — full command output, environment snapshot, and timing in `~/.isetup/logs/`
+- **Real-time progress** — `[N/Total]` counter with system info header, no silent waiting
 - **Dry-run mode** — preview all commands without executing
 
 ## Install
@@ -162,14 +164,34 @@ profiles:
           - black
           - ruff
 
+  git-tools:
+    tools:
+      - name: glab
+        brew: glab
+        shell:
+          linux: |
+            curl -fsSL "https://packages.gitlab.com/install/repositories/gitlab/glab/script.deb.sh" | sudo bash
+            sudo apt-get install -y glab
+
+      - name: gh
+        brew: gh
+        shell:
+          linux: |
+            # Official GitHub CLI repo
+            wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update && sudo apt install gh -y
+
   ai-tools:
     tools:
       - name: claude-code
+        depends_on: node-lts
         shell:
           unix: "curl -fsSL https://claude.ai/install.sh | bash"
           windows: "irm https://claude.ai/install.ps1 | iex"
 
       - name: codex-cli
+        depends_on: node-lts
         npm: "@openai/codex"
 
   gpu:
@@ -234,16 +256,27 @@ Each run produces two files:
 Example terminal output:
 
 ```
-git                  PASS    (brew  ) 0.8s
-neovim               PASS    (brew  ) 3.2s
-nvm                  PASS    (shell ) 2.1s
-cuda-toolkit         FAILED  (apt   ) 1.1s  → see log
+Detecting system...
+OS: linux | Arch: amd64 | Shell: /bin/bash
+Package managers: apt, pip3, npm
+GPU: NVIDIA H200 NVL
+
+[1/22] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
+[1/22] nvm                  PASS    (shell ) 0.7s
+[2/22] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
+[2/22] node-lts             PASS    (shell ) 0.5s
+[3/22] git                  SKIP    already installed
+[4/22] Installing glab (shell: curl ... | sudo bash)...
+[4/22] glab                 PASS    (shell ) 2.1s
+[5/22] cuda-toolkit         FAILED  (apt   ) 1.1s
+       E: Unable to locate package nvidia-cuda-toolkit
+
 ─────────────────────────────
-Installed: 3 | Failed: 1 | Skipped: 0
-Log: ~/.isetup/logs/isetup-2026-03-24T20-57-30.log
+Installed: 18 | Failed: 1 | Skipped: 3
+Log: ~/.isetup/logs/isetup-2026-03-25T00-04-21.log
 ```
 
-Output is color-coded: green for PASS, red for FAILED, yellow for SKIP.
+Output is color-coded: green for PASS, red for FAILED, yellow for SKIP. First line of stderr is shown inline for failed tools.
 
 ## System Detection
 
