@@ -22,16 +22,27 @@
 
 ## 安装
 
-**一行命令安装（Linux / macOS）：**
+**Linux / macOS（推荐）：**
 
 ```bash
-curl -fsSL https://github.com/host452b/isetup/releases/latest/download/isetup_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz | tar xz -C /usr/local/bin isetup
+curl -fsSL https://raw.githubusercontent.com/host452b/isetup/main/install.sh | bash
+```
+
+自定义安装目录：
+
+```bash
+INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/host452b/isetup/main/install.sh | bash
 ```
 
 **Windows (PowerShell)：**
 
 ```powershell
-irm "https://github.com/host452b/isetup/releases/latest/download/isetup_0.1.0_windows_amd64.zip" -OutFile isetup.zip; Expand-Archive isetup.zip -DestinationPath .; Move-Item isetup.exe $env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\; Remove-Item isetup.zip
+$version = (Invoke-RestMethod "https://api.github.com/repos/host452b/isetup/releases/latest").tag_name.TrimStart('v')
+$url = "https://github.com/host452b/isetup/releases/download/v$version/isetup_${version}_windows_amd64.zip"
+Invoke-WebRequest $url -OutFile isetup.zip
+Expand-Archive isetup.zip -DestinationPath .
+Move-Item -Force isetup.exe "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\"
+Remove-Item isetup.zip
 ```
 
 **Go install：**
