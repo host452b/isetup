@@ -8,6 +8,60 @@ settings:
   dry_run: false
 
 profiles:
+  # Language runtimes — installed first, other tools depend on these
+  lang-runtimes:
+    tools:
+      - name: nvm
+        shell:
+          unix: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          windows: |
+            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
+
+      - name: node-lts
+        depends_on: nvm
+        shell:
+          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
+          windows: "nvm install lts && nvm use lts"
+
+      - name: typescript
+        depends_on: node-lts
+        npm: typescript
+
+      - name: golang
+        brew: go
+        shell:
+          linux: |
+            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+            echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+          windows: |
+            winget install --id GoLang.Go -e --accept-source-agreements
+        choco: golang
+        winget: GoLang.Go
+
+      - name: rust
+        shell:
+          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          windows: |
+            irm https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
+            .\rustup-init.exe -y
+
+      - name: miniconda
+        shell:
+          linux: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda init
+          darwin: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda init
+          windows: |
+            irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
+            Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
+
   base:
     tools:
       - name: git
@@ -25,6 +79,7 @@ profiles:
         brew: tmux
 
       - name: tmux-ide
+        depends_on: node-lts
         npm: tmux-ide
 
       - name: fzf
@@ -64,37 +119,8 @@ profiles:
               && sudo apt update \
               && sudo apt install gh -y
 
-  node-dev:
-    tools:
-      - name: nvm
-        shell:
-          unix: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          windows: |
-            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
-
-      - name: node-lts
-        depends_on: nvm
-        shell:
-          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
-          windows: "nvm install lts && nvm use lts"
-
   python-dev:
     tools:
-      - name: miniconda
-        shell:
-          linux: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda init
-          darwin: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda init
-          windows: |
-            irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
-            Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
-
       - name: uv
         depends_on: miniconda
         pip:
@@ -125,11 +151,13 @@ profiles:
   ai-tools:
     tools:
       - name: claude-code
+        depends_on: node-lts
         shell:
           unix: "curl -fsSL https://claude.ai/install.sh | bash"
           windows: "irm https://claude.ai/install.ps1 | iex"
 
       - name: codex-cli
+        depends_on: node-lts
         npm: "@openai/codex"
 
   gpu:
