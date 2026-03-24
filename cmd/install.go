@@ -19,6 +19,16 @@ var (
 	dryRunFlag   bool
 )
 
+// ANSI color codes
+const (
+	colorGreen  = "\033[32m"
+	colorRed    = "\033[31m"
+	colorYellow = "\033[33m"
+	colorCyan   = "\033[36m"
+	colorDim    = "\033[2m"
+	colorReset  = "\033[0m"
+)
+
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install tools from config",
@@ -26,9 +36,8 @@ var installCmd = &cobra.Command{
 		path := resolveConfigPath()
 		cfg, err := config.LoadFromFile(path)
 		if err != nil {
-			// No config file — fall back to embedded default template
 			if os.IsNotExist(unwrapErr(err)) {
-				fmt.Fprintf(os.Stderr, "No config found at %s, using built-in defaults\n", path)
+				fmt.Fprintf(os.Stderr, "%sNo config found at %s, using built-in defaults%s\n", colorDim, path, colorReset)
 				cfg, err = config.LoadFromBytes(defaultTemplate)
 				if err != nil {
 					return fmt.Errorf("load default template: %w", err)
@@ -44,16 +53,25 @@ var installCmd = &cobra.Command{
 
 		errs, warns := config.Validate(cfg)
 		for _, w := range warns {
-			fmt.Fprintf(os.Stderr, "WARN: %s\n", w)
+			fmt.Fprintf(os.Stderr, "%sWARN: %s%s\n", colorYellow, w, colorReset)
 		}
 		if len(errs) > 0 {
 			for _, e := range errs {
-				fmt.Fprintf(os.Stderr, "ERROR: %s\n", e)
+				fmt.Fprintf(os.Stderr, "%sERROR: %s%s\n", colorRed, e, colorReset)
 			}
 			return fmt.Errorf("config validation failed with %d error(s)", len(errs))
 		}
 
+		fmt.Printf("%sDetecting system...%s\n", colorDim, colorReset)
 		info := detector.Detect()
+		fmt.Printf("%sOS: %s | Arch: %s | Shell: %s%s\n", colorDim, info.OS, info.Arch, info.Shell, colorReset)
+		if len(info.PkgManagers) > 0 {
+			fmt.Printf("%sPackage managers: %s%s\n", colorDim, strings.Join(info.PkgManagers, ", "), colorReset)
+		}
+		if info.GPU.Detected {
+			fmt.Printf("%sGPU: %s%s\n", colorDim, info.GPU.Model, colorReset)
+		}
+		fmt.Println()
 
 		logPath, err := resolveLogDir()
 		if err != nil {
@@ -65,7 +83,7 @@ var installCmd = &cobra.Command{
 		}
 
 		if err := lg.WriteEnvJSON(info, Version, path, cfg.Version); err != nil {
-			fmt.Fprintf(os.Stderr, "WARN: failed to write env.json: %v\n", err)
+			fmt.Fprintf(os.Stderr, "%sWARN: failed to write env.json: %v%s\n", colorYellow, err, colorReset)
 		}
 
 		var profiles []string
@@ -74,22 +92,45 @@ var installCmd = &cobra.Command{
 		}
 
 		if cfg.Settings.DryRun {
-			fmt.Println("DRY RUN — commands will be printed but not executed")
-			fmt.Println()
+			fmt.Printf("%sDRY RUN — commands will be printed but not executed%s\n\n", colorCyan, colorReset)
 		}
 
-		results, err := executor.Execute(cfg, info, lg, profiles)
+		// Real-time progress callback
+		onProgress := func(ev executor.ProgressEvent) {
+			step := fmt.Sprintf("[%d/%d]", ev.Index+1, ev.Total)
+			switch ev.Phase {
+			case "start":
+				fmt.Printf("%s%s Installing %s%s (%s: %s)...\n",
+					colorDim, step, colorReset, ev.Name, ev.Method, truncate(ev.Command, 60))
+			case "done":
+				if ev.Result == nil {
+					return
+				}
+				switch ev.Result.Status {
+				case logger.StatusSuccess:
+					fmt.Printf("%s%s %s%-20s PASS%s    (%-6s) %s\n",
+						colorDim, step, colorGreen, ev.Name, colorReset, ev.Result.Method, ev.Result.Duration)
+				case logger.StatusFailed:
+					fmt.Printf("%s%s %s%-20s FAILED%s  (%-6s) %s\n",
+						colorDim, step, colorRed, ev.Name, colorReset, ev.Result.Method, ev.Result.Duration)
+					if ev.Result.Stderr != "" {
+						// Print first line of stderr for quick debug
+						lines := strings.SplitN(ev.Result.Stderr, "\n", 2)
+						fmt.Printf("       %s%s%s\n", colorDim, truncate(lines[0], 80), colorReset)
+					}
+				case logger.StatusSkipped:
+					fmt.Printf("%s%s %s%-20s SKIP%s    %s\n",
+						colorDim, step, colorYellow, ev.Name, colorReset, ev.Result.SkipReason)
+				}
+			}
+		}
+
+		results, err := executor.Execute(cfg, info, lg, profiles, onProgress)
 		if err != nil {
 			return err
 		}
 
-		// ANSI color codes
-		green := "\033[32m"
-		red := "\033[31m"
-		yellow := "\033[33m"
-		reset := "\033[0m"
-
-		fmt.Println()
+		// Summary
 		success, failed, skipped := 0, 0, 0
 		for _, r := range results {
 			switch r.Status {
@@ -102,21 +143,10 @@ var installCmd = &cobra.Command{
 			}
 		}
 
-		// Print summary: all tools with colored status
-		for _, r := range results {
-			switch r.Status {
-			case logger.StatusSuccess:
-				fmt.Printf("%s%-20s PASS%s    (%-6s) %s\n", green, r.Name, reset, r.Method, r.Duration)
-			case logger.StatusFailed:
-				fmt.Printf("%s%-20s FAILED%s  (%-6s) %s  → see log\n", red, r.Name, reset, r.Method, r.Duration)
-			case logger.StatusSkipped:
-				fmt.Printf("%s%-20s SKIP%s    %s\n", yellow, r.Name, reset, r.SkipReason)
-			}
-		}
-
+		fmt.Println()
 		fmt.Println("─────────────────────────────")
 		fmt.Printf("Installed: %s%d%s | Failed: %s%d%s | Skipped: %s%d%s\n",
-			green, success, reset, red, failed, reset, yellow, skipped, reset)
+			colorGreen, success, colorReset, colorRed, failed, colorReset, colorYellow, skipped, colorReset)
 		fmt.Printf("Log: %s\n", lg.LogPath())
 
 		if failed > 0 {
@@ -124,6 +154,15 @@ var installCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+func truncate(s string, max int) string {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, "\n", " ")
+	if len(s) > max {
+		return s[:max-3] + "..."
+	}
+	return s
 }
 
 func unwrapErr(err error) error {

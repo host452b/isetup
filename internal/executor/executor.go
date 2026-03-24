@@ -9,8 +9,23 @@ import (
 	"github.com/isetup-dev/isetup/internal/logger"
 )
 
+// ProgressCallback is called before and after each tool install.
+type ProgressCallback func(event ProgressEvent)
+
+// ProgressEvent describes what's happening during installation.
+type ProgressEvent struct {
+	Index   int    // 0-based tool index
+	Total   int    // total tool count
+	Name    string // tool name
+	Profile string // profile name
+	Phase   string // "start", "done"
+	Method  string // install method (available on "done")
+	Command string // resolved command (available on "start" for non-skip)
+	Result  *logger.ToolResult // available on "done"
+}
+
 // Execute runs the full install pipeline. Returns results and an error if topology is invalid.
-func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string) ([]logger.ToolResult, error) {
+func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
 	entries := collectTools(cfg, info, profiles)
 
 	sorted, err := TopoSort(entries)
@@ -18,10 +33,11 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 		return nil, fmt.Errorf("dependency error: %w", err)
 	}
 
+	total := len(sorted)
 	var results []logger.ToolResult
 	failed := map[string]bool{}
 
-	for _, entry := range sorted {
+	for i, entry := range sorted {
 		result := logger.ToolResult{
 			Name:    entry.Tool.Name,
 			Profile: entry.Profile,
@@ -35,6 +51,7 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 				failed[entry.Tool.Name] = true
 				_ = lg.WriteToolResult(result)
 				results = append(results, result)
+				notify(onProgress, i, total, entry, "done", "", "", &result)
 				continue
 			}
 		}
@@ -45,6 +62,7 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 			result.SkipReason = entry.SkipReason
 			_ = lg.WriteToolResult(result)
 			results = append(results, result)
+			notify(onProgress, i, total, entry, "done", "", "", &result)
 			continue
 		}
 
@@ -56,6 +74,7 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 			failed[entry.Tool.Name] = true
 			_ = lg.WriteToolResult(result)
 			results = append(results, result)
+			notify(onProgress, i, total, entry, "done", "", "", &result)
 			continue
 		}
 
@@ -68,6 +87,7 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 				failed[entry.Tool.Name] = true
 				_ = lg.WriteToolResult(result)
 				results = append(results, result)
+				notify(onProgress, i, total, entry, "done", method, cmd, &result)
 				continue
 			}
 			cmd = interpolated
@@ -78,11 +98,16 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 
 		// Dry run
 		if cfg.Settings.DryRun {
+			notify(onProgress, i, total, entry, "start", method, cmd, nil)
 			result.Status = logger.StatusSuccess
 			_ = lg.WriteToolResult(result)
 			results = append(results, result)
+			notify(onProgress, i, total, entry, "done", method, cmd, &result)
 			continue
 		}
+
+		// Notify start
+		notify(onProgress, i, total, entry, "start", method, cmd, nil)
 
 		// Execute
 		runResult := Run(cmd, info.Shell)
@@ -100,9 +125,26 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 
 		_ = lg.WriteToolResult(result)
 		results = append(results, result)
+		notify(onProgress, i, total, entry, "done", method, cmd, &result)
 	}
 
 	return results, nil
+}
+
+func notify(cb ProgressCallback, index, total int, entry ToolEntry, phase, method, command string, result *logger.ToolResult) {
+	if cb == nil {
+		return
+	}
+	cb(ProgressEvent{
+		Index:   index,
+		Total:   total,
+		Name:    entry.Tool.Name,
+		Profile: entry.Profile,
+		Phase:   phase,
+		Method:  method,
+		Command: command,
+		Result:  result,
+	})
 }
 
 func collectTools(cfg *config.Config, info *detector.SystemInfo, profileFilter []string) []ToolEntry {

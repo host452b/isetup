@@ -32,7 +32,7 @@ func TestExecute_DryRun(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(cfg, info, lg, nil)
+	results, err := Execute(cfg, info, lg, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "git", results[0].Name)
@@ -53,7 +53,7 @@ func TestExecute_ProfileFilter(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(cfg, info, lg, []string{"base"})
+	results, err := Execute(cfg, info, lg, []string{"base"}, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "git", results[0].Name)
@@ -71,7 +71,7 @@ func TestExecute_SkipsWhenConditionNotMet(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(cfg, info, lg, nil)
+	results, err := Execute(cfg, info, lg, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
@@ -92,7 +92,7 @@ func TestExecute_SkipsDependencyFailed(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(cfg, info, lg, nil)
+	results, err := Execute(cfg, info, lg, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
@@ -112,7 +112,7 @@ func TestExecute_NoMatchMethod(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(cfg, info, lg, nil)
+	results, err := Execute(cfg, info, lg, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
