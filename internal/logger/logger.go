@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/isetup-dev/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/detector"
 )
 
 const (

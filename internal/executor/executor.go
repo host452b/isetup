@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/isetup-dev/isetup/internal/config"
-	"github.com/isetup-dev/isetup/internal/detector"
-	"github.com/isetup-dev/isetup/internal/logger"
+	"github.com/host452b/isetup/internal/config"
+	"github.com/host452b/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/logger"
 )
 
 // ProgressCallback is called before and after each tool install.

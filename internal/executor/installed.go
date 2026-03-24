@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/isetup-dev/isetup/internal/config"
+	"github.com/host452b/isetup/internal/config"
 )
 
 // IsInstalled checks if a tool is already available on the system.

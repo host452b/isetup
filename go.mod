@@ -1,4 +1,4 @@
-module github.com/isetup-dev/isetup
+module github.com/host452b/isetup
 
 go 1.22
 

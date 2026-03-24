@@ -12,7 +12,7 @@
 
 - **自动检测** — 操作系统、CPU 架构、发行版、GPU、可用包管理器、Shell
 - **全平台支持** — macOS、Linux（Ubuntu/Fedora/Arch）、Windows、WSL
-- **Profile 分组** — 按用途组织工具（`base`、`node-dev`、`python-dev`、`ai-tools`、`gpu`）
+- **Profile 分组** — 按用途组织工具（`lang-runtimes`、`base`、`git-tools`、`python-dev`、`ai-tools`、`gpu`）
 - **自适应安装** — 根据系统自动选择 `brew`、`apt`、`choco`、`winget`、`dnf`、`pacman` 或自定义脚本
 - **模板变量** — Shell 命令中支持 `{{.Arch}}`、`{{.OS}}`、`{{.Home}}`，实现架构感知下载
 - **依赖排序** — `depends_on` 确保工具按正确顺序安装
@@ -48,7 +48,7 @@ Remove-Item isetup.zip
 **Go install：**
 
 ```bash
-go install github.com/isetup-dev/isetup@latest
+go install github.com/host452b/isetup@latest
 ```
 
 **从源码构建：**
@@ -89,7 +89,8 @@ isetup init                      生成默认 ~/.isetup.yaml
 isetup init --force              覆盖已有配置
 isetup detect                    输出系统检测信息（JSON）
 isetup install                   安装所有 profile
-isetup install -p base,node-dev  安装指定 profile
+isetup install -p base,ai-tools  安装指定 profile
+isetup install -f                强制重装已安装的工具
 isetup install --dry-run         仅预览命令，不执行
 isetup list                      列出所有 profile 和工具
 isetup version                   打印版本号
@@ -296,20 +297,29 @@ profiles:
         brew: ripgrep
         choco: ripgrep
 
-  node-dev:
+  lang-runtimes:
     tools:
       - name: nvm
         shell:
           unix: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          windows: |
-            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
 
       - name: node-lts
         depends_on: nvm
         shell:
           unix: "source ~/.nvm/nvm.sh && nvm install --lts"
-          windows: "nvm install lts && nvm use lts"
+
+      - name: golang
+        brew: go
+        shell:
+          linux: |
+            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+
+      - name: rust
+        shell:
+          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
 
   python-dev:
     tools:

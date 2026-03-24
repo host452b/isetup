@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/isetup-dev/isetup/internal/config"
-	"github.com/isetup-dev/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/config"
+	"github.com/host452b/isetup/internal/detector"
 )
 
 func Resolve(tool config.Tool, info *detector.SystemInfo) (string, string) {

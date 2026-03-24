@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/isetup-dev/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/detector"
 )
 
 type templateVars struct {

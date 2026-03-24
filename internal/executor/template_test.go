@@ -3,7 +3,7 @@ package executor
 import (
 	"testing"
 
-	"github.com/isetup-dev/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/detector"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

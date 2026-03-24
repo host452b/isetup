@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/isetup-dev/isetup/cmd"
+	"github.com/host452b/isetup/cmd"
 )
 
 func main() {

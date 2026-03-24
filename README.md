@@ -12,7 +12,7 @@ New machine? `isetup install`. Done.
 
 - **Auto-detection** — OS, architecture, distro, GPU, available package managers, shell
 - **Multi-platform** — macOS, Linux (Ubuntu/Fedora/Arch), Windows, WSL
-- **Profile-based config** — group tools by use case (`base`, `node-dev`, `python-dev`, `ai-tools`, `gpu`)
+- **Profile-based config** — group tools by use case (`lang-runtimes`, `base`, `git-tools`, `python-dev`, `ai-tools`, `gpu`)
 - **Adaptive install** — automatically picks `brew`, `apt`, `choco`, `winget`, `dnf`, `pacman`, or custom shell scripts based on what's available
 - **Template variables** — `{{.Arch}}`, `{{.OS}}`, `{{.Home}}` in shell commands for arch-aware downloads
 - **Dependency ordering** — `depends_on` ensures tools install in the right order
@@ -48,7 +48,7 @@ Remove-Item isetup.zip
 **Go install:**
 
 ```bash
-go install github.com/isetup-dev/isetup@latest
+go install github.com/host452b/isetup@latest
 ```
 
 **From source:**
@@ -89,7 +89,8 @@ isetup init                      Generate default ~/.isetup.yaml
 isetup init --force              Overwrite existing config
 isetup detect                    Print detected system info as JSON
 isetup install                   Install all profiles
-isetup install -p base,node-dev  Install specific profiles
+isetup install -p base,ai-tools  Install specific profiles
+isetup install -f                Reinstall even if already installed
 isetup install --dry-run         Preview commands without executing
 isetup list                      List all profiles and tools
 isetup version                   Print version
@@ -119,23 +120,30 @@ profiles:
         brew: neovim
         choco: neovim
 
-  node-dev:
+  lang-runtimes:
     tools:
       - name: nvm
         shell:
           unix: |
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          windows: |
-            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
 
       - name: node-lts
         depends_on: nvm
         shell:
           unix: "source ~/.nvm/nvm.sh && nvm install --lts"
-          windows: "nvm install lts && nvm use lts"
 
-  python-dev:
-    tools:
+      - name: golang
+        brew: go
+        shell:
+          linux: |
+            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+
+      - name: rust
+        shell:
+          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+
       - name: miniconda
         shell:
           linux: |

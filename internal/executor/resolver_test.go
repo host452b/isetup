@@ -3,8 +3,8 @@ package executor
 import (
 	"testing"
 
-	"github.com/isetup-dev/isetup/internal/config"
-	"github.com/isetup-dev/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/config"
+	"github.com/host452b/isetup/internal/detector"
 	"github.com/stretchr/testify/assert"
 )
 

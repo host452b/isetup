@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/isetup-dev/isetup/internal/config"
+	"github.com/host452b/isetup/internal/config"
 	"github.com/spf13/cobra"
 )
 

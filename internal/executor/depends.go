@@ -3,7 +3,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/isetup-dev/isetup/internal/config"
+	"github.com/host452b/isetup/internal/config"
 )
 
 type ToolEntry struct {

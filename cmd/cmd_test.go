@@ -45,7 +45,7 @@ func TestUnwrapErr(t *testing.T) {
 }
 
 func TestVersionConst(t *testing.T) {
-	assert.Equal(t, "0.1.0", Version)
+	assert.Equal(t, "0.2.0", Version)
 }
 
 func TestSetDefaultTemplate(t *testing.T) {

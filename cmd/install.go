@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/isetup-dev/isetup/internal/config"
-	"github.com/isetup-dev/isetup/internal/detector"
-	"github.com/isetup-dev/isetup/internal/executor"
-	"github.com/isetup-dev/isetup/internal/logger"
+	"github.com/host452b/isetup/internal/config"
+	"github.com/host452b/isetup/internal/detector"
+	"github.com/host452b/isetup/internal/executor"
+	"github.com/host452b/isetup/internal/logger"
 	"github.com/spf13/cobra"
 )
 
