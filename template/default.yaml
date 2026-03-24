@@ -41,14 +41,17 @@ profiles:
     tools:
       - name: glab
         brew: glab
+        choco: glab
+        winget: glab.glab
         shell:
           linux: |
-            curl -fsSL "https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository" | sudo bash
+            curl -fsSL "https://packages.gitlab.com/install/repositories/gitlab/glab/script.deb.sh" | sudo bash
             sudo apt-get install -y glab
 
       - name: gh
         apt: gh
         brew: gh
+        choco: gh
 
   node-dev:
     tools:
