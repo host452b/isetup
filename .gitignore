@@ -1,0 +1,11 @@
+isetup
+isetup.exe
+dist/
+*.env
+*.env.*
+*.pem
+*.key
+*.log
+.DS_Store
+isetup-logs/
+vendor/

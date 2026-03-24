@@ -1,0 +1,36 @@
+package cmd
+
+import "github.com/spf13/cobra"
+
+var (
+	cfgPath string
+	logDir  string
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "isetup",
+	Short: "Cross-platform dev environment setup tool (CLI-only, no GUI apps)",
+	Long: `isetup - Cross-platform dev environment setup tool
+
+Detects your OS, hardware, and architecture, then adaptively runs
+the right install commands to one-click deploy your dev environment.
+
+Designed for command-line engineers. The default template includes
+only terminal-based tools — no GUI applications.
+
+Usage:
+  isetup init                      Generate default config
+  isetup install                   Install all tools
+  isetup install -p base,ai-tools  Install specific profiles
+  isetup install --dry-run         Preview without executing
+  isetup detect                    Show system info`,
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "config file path (default ~/.isetup.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "log directory (default ~/.isetup/logs/)")
+}
+
+func Execute() error {
+	return rootCmd.Execute()
+}

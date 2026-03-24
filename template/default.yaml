@@ -1,0 +1,125 @@
+# isetup configuration — edit to match your setup
+# Docs: https://github.com/isetup-dev/isetup
+
+version: 1
+
+settings:
+  log_level: info
+  dry_run: false
+
+profiles:
+  base:
+    tools:
+      - name: git
+        apt: git
+        brew: git
+        choco: git
+
+      - name: neovim
+        apt: neovim
+        brew: neovim
+        choco: neovim
+
+      - name: tmux
+        apt: tmux
+        brew: tmux
+
+      - name: tmux-ide
+        npm: tmux-ide
+
+      - name: fzf
+        apt: fzf
+        brew: fzf
+        choco: fzf
+
+      - name: ripgrep
+        apt: ripgrep
+        brew: ripgrep
+        choco: ripgrep
+
+  git-tools:
+    tools:
+      - name: glab
+        apt: glab
+        brew: glab
+
+      - name: gh
+        apt: gh
+        brew: gh
+
+  node-dev:
+    tools:
+      - name: nvm
+        shell:
+          unix: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          windows: |
+            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
+
+      - name: node-lts
+        depends_on: nvm
+        shell:
+          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
+          windows: "nvm install lts && nvm use lts"
+
+  python-dev:
+    tools:
+      - name: miniconda
+        shell:
+          linux: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda init
+          darwin: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda init
+          windows: |
+            irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
+            Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
+
+      - name: uv
+        depends_on: miniconda
+        pip:
+          - uv
+
+      - name: pip-tools
+        depends_on: miniconda
+        pip:
+          - httpie
+          - black
+          - ruff
+
+      - name: pip-build-tools
+        depends_on: miniconda
+        pip:
+          - build
+          - twine
+          - hatchling==1.26.3
+          - pkginfo==1.12.1.1
+
+      - name: pr-analyzers
+        depends_on: miniconda
+        pip:
+          - gitlab-pr-analyzer
+          - github-pr-analyzer
+          - jira-lens
+
+  ai-tools:
+    tools:
+      - name: claude-code
+        shell:
+          unix: "curl -fsSL https://claude.ai/install.sh | bash"
+          windows: "irm https://claude.ai/install.ps1 | iex"
+
+      - name: codex-cli
+        npm: "@openai/codex"
+
+  gpu:
+    when: has_gpu
+    tools:
+      - name: cuda-toolkit
+        apt: nvidia-cuda-toolkit
+
+      - name: nvidia-driver
+        apt: nvidia-driver-550
