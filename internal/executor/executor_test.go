@@ -23,7 +23,7 @@ func testSystemInfo() *detector.SystemInfo {
 func TestExecute_DryRun(t *testing.T) {
 	cfg := &config.Config{
 		Version:  1,
-		Settings: config.Settings{DryRun: true},
+		Settings: config.Settings{DryRun: true, Force: true},
 		Profiles: map[string]config.Profile{
 			"base": {Tools: []config.Tool{{Name: "git", Apt: "git"}}},
 		},
@@ -43,7 +43,7 @@ func TestExecute_DryRun(t *testing.T) {
 func TestExecute_ProfileFilter(t *testing.T) {
 	cfg := &config.Config{
 		Version:  1,
-		Settings: config.Settings{DryRun: true},
+		Settings: config.Settings{DryRun: true, Force: true},
 		Profiles: map[string]config.Profile{
 			"base": {Tools: []config.Tool{{Name: "git", Apt: "git"}}},
 			"dev":  {Tools: []config.Tool{{Name: "neovim", Apt: "neovim"}}},
@@ -62,7 +62,7 @@ func TestExecute_ProfileFilter(t *testing.T) {
 func TestExecute_SkipsWhenConditionNotMet(t *testing.T) {
 	cfg := &config.Config{
 		Version:  1,
-		Settings: config.Settings{DryRun: true},
+		Settings: config.Settings{DryRun: true, Force: true},
 		Profiles: map[string]config.Profile{
 			"gpu": {When: "has_gpu", Tools: []config.Tool{{Name: "cuda", Apt: "cuda"}}},
 		},
@@ -80,7 +80,7 @@ func TestExecute_SkipsWhenConditionNotMet(t *testing.T) {
 func TestExecute_SkipsDependencyFailed(t *testing.T) {
 	cfg := &config.Config{
 		Version:  1,
-		Settings: config.Settings{DryRun: false},
+		Settings: config.Settings{DryRun: false, Force: true},
 		Profiles: map[string]config.Profile{
 			"dev": {Tools: []config.Tool{
 				{Name: "nvm"},             // no install method → skip
@@ -103,7 +103,7 @@ func TestExecute_SkipsDependencyFailed(t *testing.T) {
 func TestExecute_NoMatchMethod(t *testing.T) {
 	cfg := &config.Config{
 		Version:  1,
-		Settings: config.Settings{DryRun: true},
+		Settings: config.Settings{DryRun: true, Force: true},
 		Profiles: map[string]config.Profile{
 			"base": {Tools: []config.Tool{{Name: "win-only", Choco: "something"}}},
 		},

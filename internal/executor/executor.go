@@ -66,6 +66,16 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 			continue
 		}
 
+		// Check if already installed (skip unless --force)
+		if !cfg.Settings.Force && IsInstalled(entry.Tool) {
+			result.Status = logger.StatusSkipped
+			result.SkipReason = "already installed"
+			_ = lg.WriteToolResult(result)
+			results = append(results, result)
+			notify(onProgress, i, total, entry, "done", "", "", &result)
+			continue
+		}
+
 		// Resolve install method
 		method, cmd := Resolve(entry.Tool, info)
 		if method == "" {

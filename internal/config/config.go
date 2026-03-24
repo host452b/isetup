@@ -16,6 +16,7 @@ type Config struct {
 type Settings struct {
 	LogLevel string `yaml:"log_level"`
 	DryRun   bool   `yaml:"dry_run"`
+	Force    bool   `yaml:"-"` // CLI-only, not in YAML
 }
 
 type Profile struct {

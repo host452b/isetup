@@ -17,6 +17,7 @@ import (
 var (
 	profilesFlag string
 	dryRunFlag   bool
+	forceFlag    bool
 )
 
 // ANSI color codes
@@ -49,6 +50,9 @@ var installCmd = &cobra.Command{
 
 		if dryRunFlag {
 			cfg.Settings.DryRun = true
+		}
+		if forceFlag {
+			cfg.Settings.Force = true
 		}
 
 		errs, warns := config.Validate(cfg)
@@ -196,5 +200,6 @@ func resolveLogDir() (string, error) {
 func init() {
 	installCmd.Flags().StringVarP(&profilesFlag, "profiles", "p", "", "comma-separated list of profiles to install")
 	installCmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "print commands without executing")
+	installCmd.Flags().BoolVarP(&forceFlag, "force", "f", false, "reinstall even if already installed")
 	rootCmd.AddCommand(installCmd)
 }

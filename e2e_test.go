@@ -31,6 +31,7 @@ profiles:
 `)
 	cfg, err := config.LoadFromBytes(yamlData)
 	require.NoError(t, err)
+	cfg.Settings.Force = true // skip "already installed" checks in tests
 
 	errs, _ := config.Validate(cfg)
 	require.Empty(t, errs)
