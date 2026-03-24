@@ -21,10 +21,19 @@ esac
 
 # Get latest version
 echo "Detecting latest version..."
-VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | head -1 | cut -d'"' -f4)
+
+# Method 1: GitHub API (may hit rate limit without auth)
+VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null | grep '"tag_name"' | head -1 | cut -d'"' -f4 || true)
+
+# Method 2: Follow redirect from /releases/latest to get tag from URL
 if [ -z "$VERSION" ]; then
-  echo "Failed to detect latest version"
-  exit 1
+  VERSION=$(curl -fsSI "https://github.com/${REPO}/releases/latest" 2>/dev/null | grep -i '^location:' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || true)
+fi
+
+# Method 3: Hardcoded fallback
+if [ -z "$VERSION" ]; then
+  VERSION="v0.1.0"
+  echo "Could not auto-detect version, using fallback: ${VERSION}"
 fi
 VERSION_NUM=$(echo "$VERSION" | tr -d 'v')
 
