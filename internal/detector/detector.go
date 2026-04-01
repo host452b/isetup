@@ -1,5 +1,7 @@
 package detector
 
+import "os"
+
 type SystemInfo struct {
 	OS                string   `json:"os"`
 	Arch              string   `json:"arch"`
@@ -7,6 +9,7 @@ type SystemInfo struct {
 	Distro            string   `json:"distro"`
 	Kernel            string   `json:"kernel"`
 	WSL               bool     `json:"wsl"`
+	IsRoot            bool     `json:"is_root"`
 	Shell             string   `json:"shell"`
 	PowerShellVersion string   `json:"powershell_version"`
 	GPU               GPUInfo  `json:"gpu"`
@@ -22,6 +25,7 @@ type GPUInfo struct {
 
 func Detect() *SystemInfo {
 	info := DetectOS()
+	info.IsRoot = os.Getuid() == 0
 	info.GPU = DetectGPU()
 	info.PkgManagers = DetectPkgManagers()
 	shell, psVer := DetectShell()

@@ -60,17 +60,25 @@ func resolveShell(shell config.Shell, goos string) string {
 	return ""
 }
 
+func sudoPrefix(info *detector.SystemInfo) string {
+	if info.IsRoot {
+		return ""
+	}
+	return "sudo "
+}
+
 func resolvePkgMgr(tool config.Tool, info *detector.SystemInfo) (string, string) {
+	sudo := sudoPrefix(info)
 	switch info.OS {
 	case "linux":
 		if tool.Apt != "" && hasPkgMgr(info.PkgManagers, "apt") {
-			return "apt", fmt.Sprintf("sudo apt-get install -y %s", tool.Apt)
+			return "apt", fmt.Sprintf("%sapt-get install -y %s", sudo, tool.Apt)
 		}
 		if tool.Dnf != "" && hasPkgMgr(info.PkgManagers, "dnf") {
-			return "dnf", fmt.Sprintf("sudo dnf install -y %s", tool.Dnf)
+			return "dnf", fmt.Sprintf("%sdnf install -y %s", sudo, tool.Dnf)
 		}
 		if tool.Pacman != "" && hasPkgMgr(info.PkgManagers, "pacman") {
-			return "pacman", fmt.Sprintf("sudo pacman -S --noconfirm %s", tool.Pacman)
+			return "pacman", fmt.Sprintf("%spacman -S --noconfirm %s", sudo, tool.Pacman)
 		}
 	case "darwin":
 		if tool.Brew != "" && hasPkgMgr(info.PkgManagers, "brew") {

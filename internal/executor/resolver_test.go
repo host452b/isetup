@@ -112,3 +112,27 @@ func TestResolve_LinuxPacman(t *testing.T) {
 	assert.Equal(t, "pacman", method)
 	assert.Equal(t, "sudo pacman -S --noconfirm git", cmd)
 }
+
+func TestResolve_LinuxApt_Root(t *testing.T) {
+	tool := config.Tool{Name: "git", Apt: "git"}
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt"}, IsRoot: true}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "apt", method)
+	assert.Equal(t, "apt-get install -y git", cmd)
+}
+
+func TestResolve_LinuxDnf_Root(t *testing.T) {
+	tool := config.Tool{Name: "git", Dnf: "git"}
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"dnf"}, IsRoot: true}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "dnf", method)
+	assert.Equal(t, "dnf install -y git", cmd)
+}
+
+func TestResolve_LinuxPacman_Root(t *testing.T) {
+	tool := config.Tool{Name: "git", Pacman: "git"}
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"pacman"}, IsRoot: true}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "pacman", method)
+	assert.Equal(t, "pacman -S --noconfirm git", cmd)
+}

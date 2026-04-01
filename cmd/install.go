@@ -75,6 +75,9 @@ var installCmd = &cobra.Command{
 		if info.GPU.Detected {
 			fmt.Printf("%sGPU: %s%s\n", colorDim, info.GPU.Model, colorReset)
 		}
+		if info.IsRoot {
+			fmt.Printf("%sRoot: yes (sudo will be omitted)%s\n", colorDim, colorReset)
+		}
 		fmt.Println()
 
 		logPath, err := resolveLogDir()

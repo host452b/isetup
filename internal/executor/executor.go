@@ -103,6 +103,11 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 			cmd = interpolated
 		}
 
+		// Strip sudo when running as root (e.g. inside Docker containers)
+		if info.IsRoot && method == "shell" {
+			cmd = StripSudo(cmd)
+		}
+
 		result.Method = method
 		result.Command = cmd
 

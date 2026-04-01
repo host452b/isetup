@@ -32,7 +32,7 @@ fi
 
 # Method 3: Hardcoded fallback
 if [ -z "$VERSION" ]; then
-  VERSION="v0.2.0"
+  VERSION="v0.3.0"
   echo "Could not auto-detect version, using fallback: ${VERSION}"
 fi
 VERSION_NUM=$(echo "$VERSION" | tr -d 'v')
