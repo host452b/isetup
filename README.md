@@ -14,6 +14,7 @@ New machine? `isetup install`. Done.
 - **Multi-platform** — macOS, Linux (Ubuntu/Fedora/Arch), Windows, WSL
 - **Profile-based config** — group tools by use case (`lang-runtimes`, `base`, `git-tools`, `python-dev`, `ai-tools`, `gpu`)
 - **Adaptive install** — automatically picks `brew`, `apt`, `choco`, `winget`, `dnf`, `pacman`, or custom shell scripts based on what's available
+- **Root / Docker aware** — auto-detects UID 0 and omits `sudo` so installs work inside containers without `sudo` installed
 - **Template variables** — `{{.Arch}}`, `{{.OS}}`, `{{.Home}}` in shell commands for arch-aware downloads
 - **Dependency ordering** — `depends_on` ensures tools install in the right order
 - **Conditional profiles** — `when: has_gpu` skips GPU tools on machines without a GPU
@@ -83,6 +84,38 @@ isetup install
 # Install specific profiles only
 isetup install -p base,ai-tools
 ```
+
+## Default Tools
+
+The built-in template installs **25 tools** across 6 profiles:
+
+| Profile | Tool | Description |
+|---------|------|-------------|
+| **lang-runtimes** | nvm | Node Version Manager |
+| | node-lts | Node.js LTS (via nvm) |
+| | typescript | TypeScript compiler |
+| | golang | Go programming language |
+| | rust | Rust toolchain (rustup) |
+| | miniconda | Conda package manager |
+| **base** | git | Version control |
+| | neovim | Terminal text editor |
+| | tmux | Terminal multiplexer |
+| | tmux-ide | tmux session manager (npm) |
+| | fzf | Fuzzy finder |
+| | ripgrep | Fast recursive search |
+| **git-tools** | glab | GitLab CLI |
+| | gh | GitHub CLI |
+| **python-dev** | uv | Fast Python package manager |
+| | pip-tools | httpie, black, ruff |
+| | pip-build-tools | build, twine, hatchling |
+| | pr-analyzers | gitlab-pr-analyzer, github-pr-analyzer, jira-lens |
+| **ai-tools** | claude-code | Anthropic Claude Code CLI |
+| | codex-cli | OpenAI Codex CLI |
+| | cursor | Cursor AI editor (CLI installer) |
+| | yoyo | PTY proxy for AI agent auto-approve |
+| | arxs | Multi-source academic paper search CLI |
+| **gpu** | cuda-toolkit | NVIDIA CUDA toolkit (when GPU detected) |
+| | nvidia-driver | NVIDIA driver 550 (when GPU detected) |
 
 ## Commands
 
@@ -194,6 +227,19 @@ profiles:
         depends_on: node-lts
         npm: "@openai/codex"
 
+      - name: cursor
+        shell:
+          unix: "curl -fsS https://cursor.com/install | bash"
+
+      - name: yoyo
+        shell:
+          unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
+
+      - name: arxs
+        shell:
+          unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
+          windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
+
   gpu:
     when: has_gpu
     tools:
@@ -209,9 +255,9 @@ Each tool can declare multiple install methods. isetup picks the best one for th
 
 | Key | Expands to | Platform |
 |-----|-----------|----------|
-| `apt: X` | `sudo apt-get install -y X` | Linux (Debian/Ubuntu) |
-| `dnf: X` | `sudo dnf install -y X` | Linux (Fedora/RHEL) |
-| `pacman: X` | `sudo pacman -S --noconfirm X` | Linux (Arch) |
+| `apt: X` | `sudo apt-get install -y X` | Linux (Debian/Ubuntu) — `sudo` omitted when root |
+| `dnf: X` | `sudo dnf install -y X` | Linux (Fedora/RHEL) — `sudo` omitted when root |
+| `pacman: X` | `sudo pacman -S --noconfirm X` | Linux (Arch) — `sudo` omitted when root |
 | `brew: X` | `brew install X` | macOS |
 | `choco: X` | `choco install X -y` | Windows (priority) |
 | `winget: X` | `winget install --id X -e --accept-source-agreements` | Windows (fallback) |
@@ -290,6 +336,7 @@ Output is color-coded: green for PASS, red for FAILED, yellow for SKIP. First li
   "distro": "macOS 15.3.2",
   "kernel": "24.3.0",
   "wsl": false,
+  "is_root": false,
   "shell": "/bin/zsh",
   "gpu": {
     "detected": true,

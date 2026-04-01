@@ -14,6 +14,7 @@
 - **全平台支持** — macOS、Linux（Ubuntu/Fedora/Arch）、Windows、WSL
 - **Profile 分组** — 按用途组织工具（`lang-runtimes`、`base`、`git-tools`、`python-dev`、`ai-tools`、`gpu`）
 - **自适应安装** — 根据系统自动选择 `brew`、`apt`、`choco`、`winget`、`dnf`、`pacman` 或自定义脚本
+- **Root / Docker 感知** — 自动检测 UID 0 并省略 `sudo`，在没有安装 `sudo` 的容器内也能正常工作
 - **模板变量** — Shell 命令中支持 `{{.Arch}}`、`{{.OS}}`、`{{.Home}}`，实现架构感知下载
 - **依赖排序** — `depends_on` 确保工具按正确顺序安装
 - **条件安装** — `when: has_gpu` 在没有 GPU 的机器上自动跳过
@@ -83,6 +84,38 @@ isetup install
 # 仅安装指定 profile
 isetup install -p base,ai-tools
 ```
+
+## 默认工具
+
+内置模板安装 **25 个工具**，分布在 6 个 profile 中：
+
+| Profile | 工具 | 说明 |
+|---------|------|------|
+| **lang-runtimes** | nvm | Node 版本管理器 |
+| | node-lts | Node.js LTS（通过 nvm） |
+| | typescript | TypeScript 编译器 |
+| | golang | Go 编程语言 |
+| | rust | Rust 工具链（rustup） |
+| | miniconda | Conda 包管理器 |
+| **base** | git | 版本控制 |
+| | neovim | 终端文本编辑器 |
+| | tmux | 终端复用器 |
+| | tmux-ide | tmux 会话管理器（npm） |
+| | fzf | 模糊查找器 |
+| | ripgrep | 快速递归搜索 |
+| **git-tools** | glab | GitLab CLI |
+| | gh | GitHub CLI |
+| **python-dev** | uv | 快速 Python 包管理器 |
+| | pip-tools | httpie、black、ruff |
+| | pip-build-tools | build、twine、hatchling |
+| | pr-analyzers | gitlab-pr-analyzer、github-pr-analyzer、jira-lens |
+| **ai-tools** | claude-code | Anthropic Claude Code CLI |
+| | codex-cli | OpenAI Codex CLI |
+| | cursor | Cursor AI 编辑器（CLI 安装器） |
+| | yoyo | AI 代理自动审批 PTY 代理 |
+| | arxs | 多源学术论文搜索 CLI |
+| **gpu** | cuda-toolkit | NVIDIA CUDA 工具包（检测到 GPU 时） |
+| | nvidia-driver | NVIDIA 驱动 550（检测到 GPU 时） |
 
 ## 命令一览
 
@@ -254,9 +287,9 @@ isetup 在安装前自动校验配置：
 
 | 配置键 | 展开为 | 提权 |
 |--------|--------|------|
-| `apt: X` | `sudo apt-get install -y X` | sudo |
-| `dnf: X` | `sudo dnf install -y X` | sudo |
-| `pacman: X` | `sudo pacman -S --noconfirm X` | sudo |
+| `apt: X` | `sudo apt-get install -y X` | sudo（root 时省略） |
+| `dnf: X` | `sudo dnf install -y X` | sudo（root 时省略） |
+| `pacman: X` | `sudo pacman -S --noconfirm X` | sudo（root 时省略） |
 | `brew: X` | `brew install X` | 无 |
 | `choco: X` | `choco install X -y` | 需提权 shell |
 | `winget: X` | `winget install --id X -e --accept-source-agreements` | 无 |
@@ -356,6 +389,19 @@ profiles:
       - name: codex-cli
         npm: "@openai/codex"
 
+      - name: cursor
+        shell:
+          unix: "curl -fsS https://cursor.com/install | bash"
+
+      - name: yoyo
+        shell:
+          unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
+
+      - name: arxs
+        shell:
+          unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
+          windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
+
   gpu:
     when: has_gpu
     tools:
@@ -401,6 +447,7 @@ Log: ~/.isetup/logs/isetup-2026-03-24T20-57-30.log
   "distro": "macOS 15.3.2",
   "kernel": "24.3.0",
   "wsl": false,
+  "is_root": false,
   "shell": "/bin/zsh",
   "gpu": {
     "detected": true,

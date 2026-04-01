@@ -160,6 +160,19 @@ profiles:
         depends_on: node-lts
         npm: "@openai/codex"
 
+      - name: cursor
+        shell:
+          unix: "curl -fsS https://cursor.com/install | bash"
+
+      - name: yoyo
+        shell:
+          unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
+
+      - name: arxs
+        shell:
+          unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
+          windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
+
   gpu:
     when: has_gpu
     tools:
