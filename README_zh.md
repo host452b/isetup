@@ -12,7 +12,7 @@
 
 - **自动检测** — 操作系统、CPU 架构、发行版、GPU、可用包管理器、Shell
 - **全平台支持** — macOS、Linux（Ubuntu/Fedora/Arch）、Windows、WSL
-- **Profile 分组** — 按用途组织工具（`lang-runtimes`、`base`、`git-tools`、`python-dev`、`ai-tools`、`gpu`）
+- **Profile 分组** — 按用途组织工具（`lang-runtimes`、`base`、`git-tools`、`python-dev`、`ai-tools`、`gpu`、`shell-enhancements`、`system-tools`）
 - **自适应安装** — 根据系统自动选择 `brew`、`apt`、`choco`、`winget`、`dnf`、`pacman` 或自定义脚本
 - **Root / Docker 感知** — 自动检测 UID 0 并省略 `sudo`，在没有安装 `sudo` 的容器内也能正常工作
 - **模板变量** — Shell 命令中支持 `{{.Arch}}`、`{{.OS}}`、`{{.Home}}`，实现架构感知下载
@@ -87,7 +87,7 @@ isetup install -p base,ai-tools
 
 ## 默认工具
 
-内置模板安装 **25 个工具**，分布在 6 个 profile 中：
+内置模板安装 **57 个工具**，分布在 8 个 profile 中：
 
 | Profile | 工具 | 说明 |
 |---------|------|------|
@@ -97,25 +97,57 @@ isetup install -p base,ai-tools
 | | golang | Go 编程语言 |
 | | rust | Rust 工具链（rustup） |
 | | miniconda | Conda 包管理器 |
+| | mise | 多语言运行时管理器 |
 | **base** | git | 版本控制 |
 | | neovim | 终端文本编辑器 |
 | | tmux | 终端复用器 |
 | | tmux-ide | tmux 会话管理器（npm） |
 | | fzf | 模糊查找器 |
 | | ripgrep | 快速递归搜索 |
+| | bat | 带语法高亮的 cat 替代 |
+| | eza | 现代化 ls 替代 |
+| | fd | 简单快速的 find 替代 |
+| | jq | 命令行 JSON 处理器 |
+| | yq | 命令行 YAML 处理器 |
+| | tree | 树形目录列表 |
+| | htop | 交互式进程查看器 |
+| | btop | TUI 资源监控 |
+| | fonts-firacode | Fira Code 编程字体 |
+| | make | 构建自动化工具 |
+| | curl | URL 数据传输工具 |
+| | wget | 网络文件下载器 |
+| | zip | 压缩工具 |
+| | unzip | 解压工具 |
 | **git-tools** | glab | GitLab CLI |
 | | gh | GitHub CLI |
+| | lazygit | Git 终端 UI |
+| | delta | Git diff 语法高亮分页器 |
+| | gitlab-runner | GitLab CI 运行器 |
 | **python-dev** | uv | 快速 Python 包管理器 |
 | | pip-tools | httpie、black、ruff |
 | | pip-build-tools | build、twine、hatchling |
+| | huggingface-hub | Hugging Face 模型中心 CLI |
 | | pr-analyzers | gitlab-pr-analyzer、github-pr-analyzer、jira-lens |
+| | playwright | 浏览器自动化框架 |
+| | pgcli | 带自动补全的 PostgreSQL CLI |
+| | ai-ml-libs | chromadb、pgvector、langsmith、langfuse |
 | **ai-tools** | claude-code | Anthropic Claude Code CLI |
 | | codex-cli | OpenAI Codex CLI |
 | | cursor | Cursor AI 编辑器（CLI 安装器） |
 | | yoyo | AI 代理自动审批 PTY 代理 |
 | | arxs | 多源学术论文搜索 CLI |
+| | ollama | 本地 LLM 运行器 |
 | **gpu** | cuda-toolkit | NVIDIA CUDA 工具包（检测到 GPU 时） |
 | | nvidia-driver | NVIDIA 驱动 550（检测到 GPU 时） |
+| **shell-enhancements** | zoxide | 智能 cd 命令（追踪频率） |
+| | starship | 跨 Shell 极简提示符 |
+| | direnv | 按目录自动加载环境变量 |
+| **system-tools** | lsof | 列出打开的文件和端口 |
+| | netcat | TCP/UDP 网络工具 |
+| | tcpdump | 网络抓包分析器 |
+| | dnsutils | DNS 查询工具（dig、nslookup） |
+| | strace | 系统调用追踪器 |
+| | sqlite3 | SQLite 数据库 CLI |
 
 ## 命令一览
 
@@ -472,6 +504,31 @@ isetup/
 └── template/
     └── default.yaml         # 默认配置模板
 ```
+
+## 故障排查
+
+**工具安装卡住：**
+使用 `--timeout 2m` 设置更短的单工具超时。检查 `~/.isetup/logs/` 获取完整命令输出。
+
+**权限被拒绝：**
+isetup 自动检测 root 并省略 `sudo`。如果你不是 root 且 `sudo` 失败，请确保你的用户有 sudo 权限。
+
+**找不到 Profile：**
+使用 `isetup list` 查看可用的 profile。Profile 名称区分大小写。
+
+**已安装的工具：**
+isetup 会跳过 PATH 中已有的工具。使用 `-f` 强制重装。
+
+**自定义配置路径：**
+使用 `--config /path/to/config.yaml` 指定非默认配置文件。
+
+## 退出码
+
+| 退出码 | 含义 |
+|--------|------|
+| 0 | 所有工具安装或跳过成功 |
+| 1 | 一个或多个工具安装失败 |
+| 2 | 配置错误（无效 YAML、校验失败） |
 
 ## 构建
 
