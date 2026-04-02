@@ -1,8 +1,10 @@
 package executor
 
 import (
+	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/host452b/isetup/internal/config"
 	"github.com/host452b/isetup/internal/detector"
@@ -25,7 +27,7 @@ type ProgressEvent struct {
 }
 
 // Execute runs the full install pipeline. Returns results and an error if topology is invalid.
-func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
+func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
 	entries := collectTools(cfg, info, profiles)
 
 	sorted, err := TopoSort(entries)
@@ -125,7 +127,13 @@ func Execute(cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, p
 		notify(onProgress, i, total, entry, "start", method, cmd, nil)
 
 		// Execute
-		runResult := Run(cmd, info.Shell)
+		timeout := 10 * time.Minute
+		if cfg.Settings.Timeout > 0 {
+			timeout = cfg.Settings.Timeout
+		}
+		toolCtx, toolCancel := context.WithTimeout(ctx, timeout)
+		runResult := Run(toolCtx, cmd, info.Shell)
+		toolCancel()
 		result.ExitCode = runResult.ExitCode
 		result.Duration = runResult.Duration
 		result.Stdout = runResult.Stdout

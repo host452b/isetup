@@ -1,10 +1,15 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"time"
+
+	"github.com/spf13/cobra"
+)
 
 var (
-	cfgPath string
-	logDir  string
+	cfgPath     string
+	logDir      string
+	timeoutFlag time.Duration
 )
 
 var rootCmd = &cobra.Command{
@@ -29,6 +34,7 @@ Usage:
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "config file path (default ~/.isetup.yaml)")
 	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "log directory (default ~/.isetup/logs/)")
+	rootCmd.PersistentFlags().DurationVar(&timeoutFlag, "timeout", 10*time.Minute, "max time per tool install (e.g. 5m, 30s)")
 }
 
 func Execute() error {

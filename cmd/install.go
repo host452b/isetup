@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -132,7 +133,10 @@ var installCmd = &cobra.Command{
 			}
 		}
 
-		results, err := executor.Execute(cfg, info, lg, profiles, onProgress)
+		ctx := context.Background()
+		cfg.Settings.Timeout = timeoutFlag
+
+		results, err := executor.Execute(ctx, cfg, info, lg, profiles, onProgress)
 		if err != nil {
 			return err
 		}
