@@ -46,6 +46,29 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 curl -fsSL "$URL" -o "${TMP}/isetup.tar.gz"
+
+# Verify checksum
+CHECKSUM_URL="https://github.com/${REPO}/releases/download/${VERSION}/checksums.txt"
+curl -fsSL "$CHECKSUM_URL" -o "${TMP}/checksums.txt" 2>/dev/null || true
+
+if [ -f "${TMP}/checksums.txt" ]; then
+  EXPECTED=$(grep "isetup_${VERSION_NUM}_${OS}_${ARCH}.tar.gz" "${TMP}/checksums.txt" | awk '{print $1}')
+  if [ -n "$EXPECTED" ]; then
+    if command -v sha256sum >/dev/null 2>&1; then
+      ACTUAL=$(sha256sum "${TMP}/isetup.tar.gz" | awk '{print $1}')
+    elif command -v shasum >/dev/null 2>&1; then
+      ACTUAL=$(shasum -a 256 "${TMP}/isetup.tar.gz" | awk '{print $1}')
+    fi
+    if [ -n "$ACTUAL" ] && [ "$EXPECTED" != "$ACTUAL" ]; then
+      echo "ERROR: checksum mismatch!"
+      echo "  Expected: $EXPECTED"
+      echo "  Got:      $ACTUAL"
+      exit 1
+    fi
+    echo "Checksum verified."
+  fi
+fi
+
 tar xzf "${TMP}/isetup.tar.gz" -C "$TMP"
 
 # Install

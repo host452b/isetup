@@ -12,7 +12,7 @@ New machine? `isetup install`. Done.
 
 - **Auto-detection** — OS, architecture, distro, GPU, available package managers, shell
 - **Multi-platform** — macOS, Linux (Ubuntu/Fedora/Arch), Windows, WSL
-- **Profile-based config** — group tools by use case (`lang-runtimes`, `base`, `git-tools`, `python-dev`, `ai-tools`, `gpu`)
+- **Profile-based config** — group tools by use case (`lang-runtimes`, `base`, `git-tools`, `python-dev`, `ai-tools`, `gpu`, `shell-enhancements`, `system-tools`)
 - **Adaptive install** — automatically picks `brew`, `apt`, `choco`, `winget`, `dnf`, `pacman`, or custom shell scripts based on what's available
 - **Root / Docker aware** — auto-detects UID 0 and omits `sudo` so installs work inside containers without `sudo` installed
 - **Template variables** — `{{.Arch}}`, `{{.OS}}`, `{{.Home}}` in shell commands for arch-aware downloads
@@ -87,7 +87,7 @@ isetup install -p base,ai-tools
 
 ## Default Tools
 
-The built-in template installs **25 tools** across 6 profiles:
+The built-in template installs **57 tools** across 8 profiles:
 
 | Profile | Tool | Description |
 |---------|------|-------------|
@@ -97,25 +97,57 @@ The built-in template installs **25 tools** across 6 profiles:
 | | golang | Go programming language |
 | | rust | Rust toolchain (rustup) |
 | | miniconda | Conda package manager |
+| | mise | Polyglot runtime manager |
 | **base** | git | Version control |
 | | neovim | Terminal text editor |
 | | tmux | Terminal multiplexer |
 | | tmux-ide | tmux session manager (npm) |
 | | fzf | Fuzzy finder |
 | | ripgrep | Fast recursive search |
+| | bat | cat clone with syntax highlighting |
+| | eza | Modern replacement for ls |
+| | fd | Simple, fast alternative to find |
+| | jq | Command-line JSON processor |
+| | yq | Command-line YAML processor |
+| | tree | Directory listing in tree format |
+| | htop | Interactive process viewer |
+| | btop | Resource monitor with TUI |
+| | fonts-firacode | Fira Code programming font |
+| | make | Build automation tool |
+| | curl | URL data transfer tool |
+| | wget | Network file downloader |
+| | zip | Compression utility |
+| | unzip | Decompression utility |
 | **git-tools** | glab | GitLab CLI |
 | | gh | GitHub CLI |
+| | lazygit | Terminal UI for git |
+| | delta | Syntax-highlighting pager for git diffs |
+| | gitlab-runner | GitLab CI runner |
 | **python-dev** | uv | Fast Python package manager |
 | | pip-tools | httpie, black, ruff |
 | | pip-build-tools | build, twine, hatchling |
+| | huggingface-hub | Hugging Face model hub CLI |
 | | pr-analyzers | gitlab-pr-analyzer, github-pr-analyzer, jira-lens |
+| | playwright | Browser automation framework |
+| | pgcli | PostgreSQL CLI with auto-completion |
+| | ai-ml-libs | chromadb, pgvector, langsmith, langfuse |
 | **ai-tools** | claude-code | Anthropic Claude Code CLI |
 | | codex-cli | OpenAI Codex CLI |
 | | cursor | Cursor AI editor (CLI installer) |
 | | yoyo | PTY proxy for AI agent auto-approve |
 | | arxs | Multi-source academic paper search CLI |
+| | ollama | Local LLM runner |
 | **gpu** | cuda-toolkit | NVIDIA CUDA toolkit (when GPU detected) |
 | | nvidia-driver | NVIDIA driver 550 (when GPU detected) |
+| **shell-enhancements** | zoxide | Smarter cd command (tracks frecency) |
+| | starship | Cross-shell prompt with minimal config |
+| | direnv | Per-directory environment variables |
+| **system-tools** | lsof | List open files and ports |
+| | netcat | TCP/UDP networking utility |
+| | tcpdump | Network packet analyzer |
+| | dnsutils | DNS lookup tools (dig, nslookup) |
+| | strace | System call tracer |
+| | sqlite3 | SQLite database CLI |
 
 ## Commands
 
@@ -361,6 +393,31 @@ isetup/
 └── template/
     └── default.yaml         # Default config template
 ```
+
+## Troubleshooting
+
+**Tool install hangs:**
+Use `--timeout 2m` to set a shorter per-tool timeout. Check `~/.isetup/logs/` for the full command output.
+
+**Permission denied:**
+isetup auto-detects root and omits `sudo`. If you're not root and `sudo` fails, ensure your user has sudo privileges.
+
+**Profile not found:**
+Check available profiles with `isetup list`. Profile names are case-sensitive.
+
+**Already installed tools:**
+isetup skips tools found in PATH. Use `-f` to force reinstall.
+
+**Custom config location:**
+Use `--config /path/to/config.yaml` to point to a non-default config file.
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All tools installed or skipped successfully |
+| 1 | One or more tools failed to install |
+| 2 | Configuration error (invalid YAML, validation failure) |
 
 ## Build
 

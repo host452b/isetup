@@ -136,3 +136,75 @@ func TestResolve_LinuxPacman_Root(t *testing.T) {
 	assert.Equal(t, "pacman", method)
 	assert.Equal(t, "pacman -S --noconfirm git", cmd)
 }
+
+func TestResolve_AptSafePackageName(t *testing.T) {
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt"}}
+	tool := config.Tool{Name: "git", Apt: "git"}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "apt", method)
+	assert.Equal(t, "sudo apt-get install -y git", cmd)
+}
+
+func TestResolve_RejectsShellMetachars(t *testing.T) {
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt"}}
+	cases := []struct {
+		name string
+		apt  string
+	}{
+		{"semicolon", "git; rm -rf /"},
+		{"pipe", "git | cat"},
+		{"backtick", "git`whoami`"},
+		{"dollar-paren", "git$(whoami)"},
+		{"ampersand", "git && echo pwned"},
+		{"redirect", "git > /dev/null"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tool := config.Tool{Name: "bad", Apt: tc.apt}
+			method, _ := Resolve(tool, info)
+			assert.Equal(t, "", method, "should reject unsafe package name: %s", tc.apt)
+		})
+	}
+}
+
+func TestResolve_PipSafePackages(t *testing.T) {
+	info := &detector.SystemInfo{
+		OS:          "linux",
+		Home:        "/home/test",
+		PkgManagers: []string{"pip3"},
+	}
+	tool := config.Tool{Name: "libs", Pip: []string{"numpy", "pandas"}}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "pip", method)
+	assert.Equal(t, "pip3 install numpy pandas", cmd)
+}
+
+func TestResolve_RejectsPipMetachars(t *testing.T) {
+	info := &detector.SystemInfo{
+		OS:          "linux",
+		Home:        "/home/test",
+		PkgManagers: []string{"pip3"},
+	}
+	tool := config.Tool{Name: "bad", Pip: []string{"numpy; rm -rf /"}}
+	method, _ := Resolve(tool, info)
+	assert.Equal(t, "", method)
+}
+
+func TestResolve_AllowsVersionPinning(t *testing.T) {
+	info := &detector.SystemInfo{
+		OS:          "linux",
+		Home:        "/home/test",
+		PkgManagers: []string{"pip3"},
+	}
+	tool := config.Tool{Name: "pinned", Pip: []string{"hatchling==1.26.3", "pkginfo>=1.0"}}
+	method, _ := Resolve(tool, info)
+	assert.Equal(t, "pip", method)
+}
+
+func TestResolve_NpmSafeScope(t *testing.T) {
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"npm"}}
+	tool := config.Tool{Name: "codex", Npm: "@openai/codex"}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "npm", method)
+	assert.Equal(t, "npm install -g @openai/codex", cmd)
+}

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -14,9 +15,10 @@ type Config struct {
 }
 
 type Settings struct {
-	LogLevel string `yaml:"log_level"`
-	DryRun   bool   `yaml:"dry_run"`
-	Force    bool   `yaml:"-"` // CLI-only, not in YAML
+	LogLevel string        `yaml:"log_level"`
+	DryRun   bool          `yaml:"dry_run"`
+	Force    bool          `yaml:"-"`         // CLI-only, not in YAML
+	Timeout  time.Duration `yaml:"-"`         // CLI-only
 }
 
 type Profile struct {

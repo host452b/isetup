@@ -16,6 +16,15 @@ const (
 	StatusSkipped = "SKIPPED"
 )
 
+const maxLogOutput = 10000 // 10KB per stdout/stderr field
+
+func truncateLog(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + fmt.Sprintf("\n... (truncated, %d bytes total)", len(s))
+}
+
 type ToolResult struct {
 	Name       string
 	Profile    string
@@ -99,10 +108,14 @@ func (l *Logger) WriteToolResult(r ToolResult) error {
 	stderr := r.Stderr
 	if stderr == "" {
 		stderr = "(empty)"
+	} else {
+		stderr = truncateLog(stderr, maxLogOutput)
 	}
 	stdout := r.Stdout
 	if stdout == "" {
 		stdout = "(empty)"
+	} else {
+		stdout = truncateLog(stdout, maxLogOutput)
 	}
 
 	entry := fmt.Sprintf("=====================================\n[%s] INSTALL: %s\n  Profile: %s\n  Method: %s\n  Command: %s\n  Exit Code: %d\n  Duration: %s\n  STDOUT: |\n    %s\n  STDERR: |\n    %s\n  Status: %s\n",

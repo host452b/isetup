@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/host452b/isetup/internal/config"
@@ -30,15 +33,34 @@ const (
 	colorReset  = "\033[0m"
 )
 
+const (
+	ExitOK          = 0
+	ExitPartialFail = 1
+	ExitConfigError = 2
+)
+
+type ExitError struct {
+	Code    int
+	Message string
+}
+
+func (e *ExitError) Error() string { return e.Message }
+
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install tools from config",
+	Example: `  isetup install                   Install all profiles
+  isetup install -p base,ai-tools  Install specific profiles
+  isetup install --dry-run         Preview without executing
+  isetup install -f                Force reinstall everything
+  isetup install --timeout 5m     Set 5-minute per-tool timeout`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := resolveConfigPath()
 		cfg, err := config.LoadFromFile(path)
 		if err != nil {
 			if os.IsNotExist(unwrapErr(err)) {
 				fmt.Fprintf(os.Stderr, "%sNo config found at %s, using built-in defaults%s\n", colorDim, path, colorReset)
+				fmt.Fprintf(os.Stderr, "%sTip: run 'isetup init' to generate a customizable config%s\n", colorDim, colorReset)
 				cfg, err = config.LoadFromBytes(defaultTemplate)
 				if err != nil {
 					return fmt.Errorf("load default template: %w", err)
@@ -63,7 +85,7 @@ var installCmd = &cobra.Command{
 			for _, e := range errs {
 				fmt.Fprintf(os.Stderr, "%sERROR: %s%s\n", colorRed, e, colorReset)
 			}
-			return fmt.Errorf("config validation failed with %d error(s)", len(errs))
+			return &ExitError{Code: ExitConfigError, Message: fmt.Sprintf("config validation failed with %d error(s)", len(errs))}
 		}
 
 		fmt.Printf("%sDetecting system...%s\n", colorDim, colorReset)
@@ -93,9 +115,41 @@ var installCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "%sWARN: failed to write env.json: %v%s\n", colorYellow, err, colorReset)
 		}
 
+		fmt.Printf("%sLog: %s%s\n", colorDim, lg.LogPath(), colorReset)
+
 		var profiles []string
 		if profilesFlag != "" {
-			profiles = strings.Split(profilesFlag, ",")
+			for _, p := range strings.Split(profilesFlag, ",") {
+				p = strings.TrimSpace(p)
+				if p == "" {
+					continue
+				}
+				if _, ok := cfg.Profiles[p]; !ok {
+					// Find close match
+					suggestion := ""
+					for name := range cfg.Profiles {
+						if strings.Contains(name, p) || strings.Contains(p, name) {
+							suggestion = name
+							break
+						}
+					}
+					if suggestion != "" {
+						fmt.Fprintf(os.Stderr, "%sWARN: unknown profile %q, did you mean %q?%s\n", colorYellow, p, suggestion, colorReset)
+					} else {
+						available := make([]string, 0, len(cfg.Profiles))
+						for name := range cfg.Profiles {
+							available = append(available, name)
+						}
+						sort.Strings(available)
+						fmt.Fprintf(os.Stderr, "%sWARN: unknown profile %q. Available: %s%s\n", colorYellow, p, strings.Join(available, ", "), colorReset)
+					}
+					continue
+				}
+				profiles = append(profiles, p)
+			}
+			if len(profiles) == 0 {
+				return fmt.Errorf("no valid profiles found in -p flag")
+			}
 		}
 
 		if cfg.Settings.DryRun {
@@ -132,7 +186,11 @@ var installCmd = &cobra.Command{
 			}
 		}
 
-		results, err := executor.Execute(cfg, info, lg, profiles, onProgress)
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+		cfg.Settings.Timeout = timeoutFlag
+
+		results, err := executor.Execute(ctx, cfg, info, lg, profiles, onProgress)
 		if err != nil {
 			return err
 		}
@@ -156,8 +214,18 @@ var installCmd = &cobra.Command{
 			colorGreen, success, colorReset, colorRed, failed, colorReset, colorYellow, skipped, colorReset)
 		fmt.Printf("Log: %s\n", lg.LogPath())
 
+		interrupted := 0
+		for _, r := range results {
+			if r.SkipReason == "interrupted" {
+				interrupted++
+			}
+		}
+		if interrupted > 0 {
+			fmt.Fprintf(os.Stderr, "\n%sInterrupted — %d tool(s) were not attempted%s\n", colorYellow, interrupted, colorReset)
+		}
+
 		if failed > 0 {
-			return fmt.Errorf("%d tool(s) failed to install", failed)
+			return &ExitError{Code: ExitPartialFail, Message: fmt.Sprintf("%d tool(s) failed to install", failed)}
 		}
 		return nil
 	},

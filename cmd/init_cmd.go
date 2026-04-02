@@ -19,6 +19,8 @@ func SetDefaultTemplate(data []byte) {
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Generate default ~/.isetup.yaml config",
+	Example: `  isetup init          Generate config from built-in template
+  isetup init --force  Overwrite existing config`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -34,7 +36,11 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("write config: %w", err)
 		}
 
-		fmt.Printf("Config written to %s\n", dest)
+		fmt.Printf("Config written to %s\n\n", dest)
+		fmt.Printf("Next steps:\n")
+		fmt.Printf("  1. Edit:    %svim %s%s\n", colorDim, dest, colorReset)
+		fmt.Printf("  2. Preview: %sisetup install --dry-run%s\n", colorDim, colorReset)
+		fmt.Printf("  3. Install: %sisetup install%s\n", colorDim, colorReset)
 		return nil
 	},
 }

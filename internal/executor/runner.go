@@ -2,6 +2,7 @@ package executor
 
 import (
 	"bytes"
+	"context"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -15,7 +16,7 @@ type RunResult struct {
 	Duration time.Duration
 }
 
-func Run(command, shell string) RunResult {
+func Run(ctx context.Context, command, shell string) RunResult {
 	start := time.Now()
 
 	var cmd *exec.Cmd
@@ -24,12 +25,12 @@ func Run(command, shell string) RunResult {
 		if _, err := exec.LookPath("pwsh"); err == nil {
 			psExe = "pwsh"
 		}
-		cmd = exec.Command(psExe, "-NoProfile", "-Command", command)
+		cmd = exec.CommandContext(ctx, psExe, "-NoProfile", "-Command", command)
 	} else {
 		if shell == "" {
 			shell = "bash"
 		}
-		cmd = exec.Command(shell, "-c", command)
+		cmd = exec.CommandContext(ctx, shell, "-c", command)
 	}
 
 	var stdout, stderr bytes.Buffer

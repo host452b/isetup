@@ -62,20 +62,31 @@ profiles:
             irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
             Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
 
+      - name: mise
+        brew: mise
+        shell:
+          unix: "curl https://mise.run | sh"
+
   base:
     tools:
       - name: git
         apt: git
+        dnf: git
+        pacman: git
         brew: git
         choco: git
 
       - name: neovim
         apt: neovim
+        dnf: neovim
+        pacman: neovim
         brew: neovim
         choco: neovim
 
       - name: tmux
         apt: tmux
+        dnf: tmux
+        pacman: tmux
         brew: tmux
 
       - name: tmux-ide
@@ -84,13 +95,112 @@ profiles:
 
       - name: fzf
         apt: fzf
+        dnf: fzf
+        pacman: fzf
         brew: fzf
         choco: fzf
 
       - name: ripgrep
         apt: ripgrep
+        dnf: ripgrep
+        pacman: ripgrep
         brew: ripgrep
         choco: ripgrep
+
+      - name: bat
+        apt: bat
+        dnf: bat
+        pacman: bat
+        brew: bat
+        choco: bat
+
+      - name: eza
+        apt: eza
+        dnf: eza
+        pacman: eza
+        brew: eza
+
+      - name: fd
+        apt: fd-find
+        dnf: fd-find
+        pacman: fd
+        brew: fd
+        choco: fd
+
+      - name: jq
+        apt: jq
+        dnf: jq
+        pacman: jq
+        brew: jq
+        choco: jq
+
+      - name: yq
+        brew: yq
+        shell:
+          linux: |
+            YQ_ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+            curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" -o /tmp/yq && sudo install /tmp/yq /usr/local/bin/yq
+
+      - name: tree
+        apt: tree
+        dnf: tree
+        pacman: tree
+        brew: tree
+        choco: tree
+
+      - name: htop
+        apt: htop
+        dnf: htop
+        pacman: htop
+        brew: htop
+
+      - name: btop
+        apt: btop
+        dnf: btop
+        pacman: btop
+        brew: btop
+
+      - name: fonts-firacode
+        apt: fonts-firacode
+        dnf: fira-code-fonts
+        pacman: ttf-fira-code
+        brew: font-fira-code
+        choco: firacode
+
+      - name: make
+        apt: build-essential
+        dnf: make
+        pacman: make
+        brew: make
+        choco: make
+
+      - name: curl
+        apt: curl
+        dnf: curl
+        pacman: curl
+        brew: curl
+        choco: curl
+
+      - name: wget
+        apt: wget
+        dnf: wget
+        pacman: wget
+        brew: wget
+        choco: wget
+
+      - name: zip
+        apt: zip
+        dnf: zip
+        pacman: zip
+        brew: zip
+        choco: zip
+
+      - name: unzip
+        apt: unzip
+        dnf: unzip
+        pacman: unzip
+        brew: unzip
+        choco: unzip
 
   git-tools:
     tools:
@@ -119,6 +229,30 @@ profiles:
               && sudo apt update \
               && sudo apt install gh -y
 
+      - name: lazygit
+        brew: lazygit
+        choco: lazygit
+        shell:
+          linux: |
+            LAZYGIT_VERSION=$(curl -fsSL "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -oP '"tag_name": "v\K[^"]+')
+            LG_ARCH=$(uname -m | sed 's/x86_64/x86_64/' | sed 's/aarch64/arm64/')
+            curl -fsSL "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${LG_ARCH}.tar.gz" | sudo tar xz -C /usr/local/bin lazygit
+
+      - name: delta
+        brew: git-delta
+        choco: delta
+        shell:
+          linux: |
+            DELTA_VER=$(curl -fsSL "https://api.github.com/repos/dandavison/delta/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
+            curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/git-delta_${DELTA_VER}_$(dpkg --print-architecture).deb" -o /tmp/git-delta.deb && sudo dpkg -i /tmp/git-delta.deb
+
+      - name: gitlab-runner
+        brew: gitlab-runner
+        shell:
+          linux: |
+            curl -fsSL "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+            sudo apt-get install -y gitlab-runner
+
   python-dev:
     tools:
       - name: uv
@@ -141,12 +275,35 @@ profiles:
           - hatchling==1.26.3
           - pkginfo==1.12.1.1
 
+      - name: huggingface-hub
+        depends_on: miniconda
+        pip:
+          - huggingface_hub
+
       - name: pr-analyzers
         depends_on: miniconda
         pip:
           - gitlab-pr-analyzer
           - github-pr-analyzer
           - jira-lens
+
+      - name: playwright
+        depends_on: miniconda
+        pip:
+          - playwright
+
+      - name: pgcli
+        depends_on: miniconda
+        pip:
+          - pgcli
+
+      - name: ai-ml-libs
+        depends_on: miniconda
+        pip:
+          - chromadb
+          - pgvector
+          - langsmith
+          - langfuse
 
   ai-tools:
     tools:
@@ -173,11 +330,71 @@ profiles:
           unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
           windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
 
+      - name: ollama
+        brew: ollama
+        shell:
+          linux: "curl -fsSL https://ollama.com/install.sh | sh"
+
   gpu:
     when: has_gpu
     tools:
       - name: cuda-toolkit
         apt: nvidia-cuda-toolkit
+        dnf: nvidia-cuda-toolkit
+        pacman: cuda
 
       - name: nvidia-driver
         apt: nvidia-driver-550
+
+  shell-enhancements:
+    tools:
+      - name: zoxide
+        brew: zoxide
+        shell:
+          unix: "curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh"
+
+      - name: starship
+        brew: starship
+        shell:
+          unix: "curl -sS https://starship.rs/install.sh | sh -s -- -y"
+
+      - name: direnv
+        apt: direnv
+        dnf: direnv
+        pacman: direnv
+        brew: direnv
+
+  system-tools:
+    tools:
+      - name: lsof
+        apt: lsof
+        dnf: lsof
+        pacman: lsof
+
+      - name: netcat
+        apt: netcat-openbsd
+        dnf: nmap-ncat
+        pacman: openbsd-netcat
+
+      - name: tcpdump
+        apt: tcpdump
+        dnf: tcpdump
+        pacman: tcpdump
+
+      - name: dnsutils
+        apt: dnsutils
+        dnf: bind-utils
+        pacman: bind
+        brew: bind
+
+      - name: strace
+        apt: strace
+        dnf: strace
+        pacman: strace
+
+      - name: sqlite3
+        apt: sqlite3
+        dnf: sqlite
+        pacman: sqlite
+        brew: sqlite
+        choco: sqlite
