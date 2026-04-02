@@ -53,14 +53,17 @@ profiles:
           linux: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           darwin: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           windows: |
             irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
             Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
+            & "$env:USERPROFILE\miniconda3\condabin\conda" config --set auto_activate_base false
 
       - name: mise
         brew: mise
