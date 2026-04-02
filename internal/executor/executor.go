@@ -45,6 +45,16 @@ func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo,
 			Profile: entry.Profile,
 		}
 
+		// Check if interrupted
+		if ctx.Err() != nil {
+			result.Status = logger.StatusSkipped
+			result.SkipReason = "interrupted"
+			_ = lg.WriteToolResult(result)
+			results = append(results, result)
+			notify(onProgress, i, total, entry, "done", "", "", &result)
+			continue
+		}
+
 		// Check depends_on
 		if entry.Tool.DependsOn != "" {
 			if entry.UnresolvedDep || failed[entry.Tool.DependsOn] {

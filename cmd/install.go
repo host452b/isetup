@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 
@@ -133,7 +134,8 @@ var installCmd = &cobra.Command{
 			}
 		}
 
-		ctx := context.Background()
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
 		cfg.Settings.Timeout = timeoutFlag
 
 		results, err := executor.Execute(ctx, cfg, info, lg, profiles, onProgress)
@@ -159,6 +161,16 @@ var installCmd = &cobra.Command{
 		fmt.Printf("Installed: %s%d%s | Failed: %s%d%s | Skipped: %s%d%s\n",
 			colorGreen, success, colorReset, colorRed, failed, colorReset, colorYellow, skipped, colorReset)
 		fmt.Printf("Log: %s\n", lg.LogPath())
+
+		interrupted := 0
+		for _, r := range results {
+			if r.SkipReason == "interrupted" {
+				interrupted++
+			}
+		}
+		if interrupted > 0 {
+			fmt.Fprintf(os.Stderr, "\n%sInterrupted — %d tool(s) were not attempted%s\n", colorYellow, interrupted, colorReset)
+		}
 
 		if failed > 0 {
 			return fmt.Errorf("%d tool(s) failed to install", failed)
