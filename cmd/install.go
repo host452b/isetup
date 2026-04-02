@@ -55,6 +55,7 @@ var installCmd = &cobra.Command{
 		if err != nil {
 			if os.IsNotExist(unwrapErr(err)) {
 				fmt.Fprintf(os.Stderr, "%sNo config found at %s, using built-in defaults%s\n", colorDim, path, colorReset)
+				fmt.Fprintf(os.Stderr, "%sTip: run 'isetup init' to generate a customizable config%s\n", colorDim, colorReset)
 				cfg, err = config.LoadFromBytes(defaultTemplate)
 				if err != nil {
 					return fmt.Errorf("load default template: %w", err)

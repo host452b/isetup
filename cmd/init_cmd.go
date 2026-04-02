@@ -34,7 +34,11 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("write config: %w", err)
 		}
 
-		fmt.Printf("Config written to %s\n", dest)
+		fmt.Printf("Config written to %s\n\n", dest)
+		fmt.Printf("Next steps:\n")
+		fmt.Printf("  1. Edit:    %svim %s%s\n", colorDim, dest, colorReset)
+		fmt.Printf("  2. Preview: %sisetup install --dry-run%s\n", colorDim, colorReset)
+		fmt.Printf("  3. Install: %sisetup install%s\n", colorDim, colorReset)
 		return nil
 	},
 }
