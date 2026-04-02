@@ -115,6 +115,8 @@ var installCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "%sWARN: failed to write env.json: %v%s\n", colorYellow, err, colorReset)
 		}
 
+		fmt.Printf("%sLog: %s%s\n", colorDim, lg.LogPath(), colorReset)
+
 		var profiles []string
 		if profilesFlag != "" {
 			for _, p := range strings.Split(profilesFlag, ",") {
