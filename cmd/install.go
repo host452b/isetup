@@ -33,6 +33,19 @@ const (
 	colorReset  = "\033[0m"
 )
 
+const (
+	ExitOK          = 0
+	ExitPartialFail = 1
+	ExitConfigError = 2
+)
+
+type ExitError struct {
+	Code    int
+	Message string
+}
+
+func (e *ExitError) Error() string { return e.Message }
+
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install tools from config",
@@ -66,7 +79,7 @@ var installCmd = &cobra.Command{
 			for _, e := range errs {
 				fmt.Fprintf(os.Stderr, "%sERROR: %s%s\n", colorRed, e, colorReset)
 			}
-			return fmt.Errorf("config validation failed with %d error(s)", len(errs))
+			return &ExitError{Code: ExitConfigError, Message: fmt.Sprintf("config validation failed with %d error(s)", len(errs))}
 		}
 
 		fmt.Printf("%sDetecting system...%s\n", colorDim, colorReset)
@@ -204,7 +217,7 @@ var installCmd = &cobra.Command{
 		}
 
 		if failed > 0 {
-			return fmt.Errorf("%d tool(s) failed to install", failed)
+			return &ExitError{Code: ExitPartialFail, Message: fmt.Sprintf("%d tool(s) failed to install", failed)}
 		}
 		return nil
 	},
