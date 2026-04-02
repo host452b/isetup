@@ -44,8 +44,9 @@ func TestUnwrapErr(t *testing.T) {
 	assert.True(t, os.IsNotExist(inner))
 }
 
-func TestVersionConst(t *testing.T) {
-	assert.Equal(t, "0.3.0", Version)
+func TestVersionVar(t *testing.T) {
+	// Default value when not injected via ldflags
+	assert.Equal(t, "dev", Version)
 }
 
 func TestSetDefaultTemplate(t *testing.T) {
