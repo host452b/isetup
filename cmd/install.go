@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/host452b/isetup/internal/config"
@@ -97,7 +98,37 @@ var installCmd = &cobra.Command{
 
 		var profiles []string
 		if profilesFlag != "" {
-			profiles = strings.Split(profilesFlag, ",")
+			for _, p := range strings.Split(profilesFlag, ",") {
+				p = strings.TrimSpace(p)
+				if p == "" {
+					continue
+				}
+				if _, ok := cfg.Profiles[p]; !ok {
+					// Find close match
+					suggestion := ""
+					for name := range cfg.Profiles {
+						if strings.Contains(name, p) || strings.Contains(p, name) {
+							suggestion = name
+							break
+						}
+					}
+					if suggestion != "" {
+						fmt.Fprintf(os.Stderr, "%sWARN: unknown profile %q, did you mean %q?%s\n", colorYellow, p, suggestion, colorReset)
+					} else {
+						available := make([]string, 0, len(cfg.Profiles))
+						for name := range cfg.Profiles {
+							available = append(available, name)
+						}
+						sort.Strings(available)
+						fmt.Fprintf(os.Stderr, "%sWARN: unknown profile %q. Available: %s%s\n", colorYellow, p, strings.Join(available, ", "), colorReset)
+					}
+					continue
+				}
+				profiles = append(profiles, p)
+			}
+			if len(profiles) == 0 {
+				return fmt.Errorf("no valid profiles found in -p flag")
+			}
 		}
 
 		if cfg.Settings.DryRun {
