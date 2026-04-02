@@ -89,65 +89,124 @@ isetup install -p base,ai-tools
 
 内置模板安装 **57 个工具**，分布在 8 个 profile 中：
 
-| Profile | 工具 | 说明 |
-|---------|------|------|
-| **lang-runtimes** | nvm | Node 版本管理器 |
-| | node-lts | Node.js LTS（通过 nvm） |
-| | typescript | TypeScript 编译器 |
-| | golang | Go 编程语言 |
-| | rust | Rust 工具链（rustup） |
-| | miniconda | Conda 包管理器 |
-| | mise | 多语言运行时管理器 |
-| **base** | git | 版本控制 |
-| | neovim | 终端文本编辑器 |
-| | tmux | 终端复用器 |
-| | tmux-ide | tmux 会话管理器（npm） |
-| | fzf | 模糊查找器 |
-| | ripgrep | 快速递归搜索 |
-| | bat | 带语法高亮的 cat 替代 |
-| | eza | 现代化 ls 替代 |
-| | fd | 简单快速的 find 替代 |
-| | jq | 命令行 JSON 处理器 |
-| | yq | 命令行 YAML 处理器 |
-| | tree | 树形目录列表 |
-| | htop | 交互式进程查看器 |
-| | btop | TUI 资源监控 |
-| | fonts-firacode | Fira Code 编程字体 |
-| | make | 构建自动化工具 |
-| | curl | URL 数据传输工具 |
-| | wget | 网络文件下载器 |
-| | zip | 压缩工具 |
-| | unzip | 解压工具 |
-| **git-tools** | glab | GitLab CLI |
-| | gh | GitHub CLI |
-| | lazygit | Git 终端 UI |
-| | delta | Git diff 语法高亮分页器 |
-| | gitlab-runner | GitLab CI 运行器 |
-| **python-dev** | uv | 快速 Python 包管理器 |
-| | pip-tools | httpie、black、ruff |
-| | pip-build-tools | build、twine、hatchling |
-| | huggingface-hub | Hugging Face 模型中心 CLI |
-| | pr-analyzers | gitlab-pr-analyzer、github-pr-analyzer、jira-lens |
-| | playwright | 浏览器自动化框架 |
-| | pgcli | 带自动补全的 PostgreSQL CLI |
-| | ai-ml-libs | chromadb、pgvector、langsmith、langfuse |
-| **ai-tools** | claude-code | Anthropic Claude Code CLI |
-| | codex-cli | OpenAI Codex CLI |
-| | cursor | Cursor AI 编辑器（CLI 安装器） |
-| | yoyo | AI 代理自动审批 PTY 代理 |
-| | arxs | 多源学术论文搜索 CLI |
-| | ollama | 本地 LLM 运行器 |
-| **gpu** | cuda-toolkit | NVIDIA CUDA 工具包（检测到 GPU 时） |
-| | nvidia-driver | NVIDIA 驱动 550（检测到 GPU 时） |
-| **shell-enhancements** | zoxide | 智能 cd 命令（追踪频率） |
-| | starship | 跨 Shell 极简提示符 |
-| | direnv | 按目录自动加载环境变量 |
-| **system-tools** | lsof | 列出打开的文件和端口 |
-| | netcat | TCP/UDP 网络工具 |
-| | tcpdump | 网络抓包分析器 |
-| | dnsutils | DNS 查询工具（dig、nslookup） |
-| | strace | 系统调用追踪器 |
-| | sqlite3 | SQLite 数据库 CLI |
+### lang-runtimes — 语言运行时与版本管理
+
+| 工具 | 说明 |
+|------|------|
+| nvm | Node.js 版本管理器 — 按项目切换 Node 版本 |
+| node-lts | Node.js LTS 版本，通过 nvm 安装 |
+| typescript | TypeScript 编译器（tsc） |
+| golang | Go 编程语言 |
+| rust | Rust 工具链 via rustup（rustc、cargo、rustfmt） |
+| miniconda | Conda 包/环境管理器 — 默认不激活 base，需手动 `conda activate` |
+| mise | 多语言运行时管理器（asdf 替代品，管理 Node/Python/Go 等版本） |
+
+### base — 核心命令行工具
+
+**编辑器 & 终端**
+
+| 工具 | 说明 |
+|------|------|
+| git | 分布式版本控制 |
+| neovim | 现代终端编辑器（Vim 分支） |
+| tmux | 终端复用器 — 分屏、会话保持 |
+| tmux-ide | 脚本化 tmux 会话布局（npm） |
+
+**搜索 & 导航**
+
+| 工具 | 说明 |
+|------|------|
+| fzf | 模糊搜索 — 交互式过滤文件、历史命令、分支 |
+| ripgrep | 递归搜索替代品 (rg)，极速 |
+| fd | 更简单快速的 `find` 替代，默认设置更合理 |
+| tree | 树形可视化目录结构 |
+
+**现代 CLI 替代品（Rust 驱动）**
+
+| 工具 | 说明 |
+|------|------|
+| bat | `cat` 替代 — 语法高亮 + Git 集成 |
+| eza | `ls` 替代 — 图标、颜色、Git 状态 |
+
+**数据处理**
+
+| 工具 | 说明 |
+|------|------|
+| jq | 命令行 JSON 处理器 — 解析 API 响应、转换配置 |
+| yq | YAML/TOML/XML 处理器 — 编辑 CI 配置、K8s 清单 |
+
+**系统工具**
+
+| 工具 | 说明 |
+|------|------|
+| htop | 交互式进程查看器 |
+| btop | 资源监控 TUI（CPU、内存、磁盘、网络） |
+| make | 构建自动化 — 很多仓库默认就有 Makefile |
+| curl | URL 数据传输（HTTP 客户端、API 测试） |
+| wget | 文件下载器，支持断点续传 |
+| zip | 压缩工具 |
+| unzip | 解压工具 |
+| fonts-firacode | Fira Code 编程字体，带连字 |
+
+### git-tools — Git & CI/CD
+
+| 工具 | 说明 |
+|------|------|
+| gh | GitHub CLI — 终端管理 PR、Issue、Actions |
+| glab | GitLab CLI — 终端管理 MR、Pipeline、Issue |
+| lazygit | Git 终端 UI — 可视化暂存、分支、变基 |
+| delta | Git diff 分页器 — 语法高亮 + 并排对比 |
+| gitlab-runner | GitLab CI 运行器 — 本地运行 CI 任务 |
+
+### python-dev — Python 生态
+
+| 工具 | 说明 |
+|------|------|
+| uv | 超快 Python 包安装器（pip 替代） |
+| pip-tools | httpie（HTTP 客户端）、black（格式化）、ruff（lint） |
+| pip-build-tools | build、twine、hatchling — Python 包发布工具 |
+| huggingface-hub | Hugging Face CLI — 下载/上传模型和数据集 |
+| pr-analyzers | gitlab-pr-analyzer、github-pr-analyzer、jira-lens |
+| playwright | 浏览器自动化测试（Chromium/Firefox/WebKit） |
+| pgcli | PostgreSQL CLI — 自动补全 + 语法高亮 |
+| ai-ml-libs | chromadb（向量数据库）、pgvector、langsmith、langfuse（LLM 可观测性） |
+
+### ai-tools — AI & LLM
+
+| 工具 | 说明 |
+|------|------|
+| claude-code | Anthropic Claude Code — 终端 AI 编程助手 |
+| codex-cli | OpenAI Codex CLI — AI 代码生成 |
+| cursor | Cursor AI 编辑器（CLI 安装器） |
+| yoyo | AI 代理自动审批 PTY 代理 |
+| arxs | 多源学术论文搜索 CLI |
+| ollama | 本地运行 LLM（Llama、Mistral 等） |
+
+### gpu — NVIDIA GPU（条件: `when: has_gpu`）
+
+| 工具 | 说明 |
+|------|------|
+| cuda-toolkit | NVIDIA CUDA 编译器和库 |
+| nvidia-driver | NVIDIA 驱动 v550 |
+
+### shell-enhancements — Shell 效率增强
+
+| 工具 | 说明 |
+|------|------|
+| zoxide | 智能 `cd` — 学习你最常用的目录 |
+| starship | 跨 Shell 提示符 — 显示 Git 状态、语言版本，配置极简 |
+| direnv | 按目录自动加载 `.envrc` — 每项目管理环境变量 |
+
+### system-tools — 调试 & 网络
+
+| 工具 | 说明 |
+|------|------|
+| lsof | 列出打开的文件和端口 — 查找占用 8080 端口的进程 |
+| netcat | TCP/UDP 瑞士军刀 — 测试连接、端口扫描 |
+| tcpdump | 网络抓包分析 |
+| dnsutils | DNS 查询工具：`dig`、`nslookup` |
+| strace | 系统调用追踪 — 调试进程行为（仅 Linux） |
+| sqlite3 | SQLite 数据库 CLI — 轻量数据库查询调试 |
 
 ## 命令一览
 
@@ -159,6 +218,7 @@ isetup install                   安装所有 profile
 isetup install -p base,ai-tools  安装指定 profile
 isetup install -f                强制重装已安装的工具
 isetup install --dry-run         仅预览命令，不执行
+isetup install --timeout 5m     设置单工具超时（默认 10 分钟）
 isetup list                      列出所有 profile 和工具
 isetup version                   打印版本号
 ```
@@ -342,6 +402,8 @@ profiles:
     tools:
       - name: git
         apt: git
+        dnf: git
+        pacman: git
         brew: git
         choco: git
 
@@ -395,10 +457,12 @@ profiles:
           linux: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           darwin: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           windows: |
             irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe

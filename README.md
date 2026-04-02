@@ -89,65 +89,124 @@ isetup install -p base,ai-tools
 
 The built-in template installs **57 tools** across 8 profiles:
 
-| Profile | Tool | Description |
-|---------|------|-------------|
-| **lang-runtimes** | nvm | Node Version Manager |
-| | node-lts | Node.js LTS (via nvm) |
-| | typescript | TypeScript compiler |
-| | golang | Go programming language |
-| | rust | Rust toolchain (rustup) |
-| | miniconda | Conda package manager |
-| | mise | Polyglot runtime manager |
-| **base** | git | Version control |
-| | neovim | Terminal text editor |
-| | tmux | Terminal multiplexer |
-| | tmux-ide | tmux session manager (npm) |
-| | fzf | Fuzzy finder |
-| | ripgrep | Fast recursive search |
-| | bat | cat clone with syntax highlighting |
-| | eza | Modern replacement for ls |
-| | fd | Simple, fast alternative to find |
-| | jq | Command-line JSON processor |
-| | yq | Command-line YAML processor |
-| | tree | Directory listing in tree format |
-| | htop | Interactive process viewer |
-| | btop | Resource monitor with TUI |
-| | fonts-firacode | Fira Code programming font |
-| | make | Build automation tool |
-| | curl | URL data transfer tool |
-| | wget | Network file downloader |
-| | zip | Compression utility |
-| | unzip | Decompression utility |
-| **git-tools** | glab | GitLab CLI |
-| | gh | GitHub CLI |
-| | lazygit | Terminal UI for git |
-| | delta | Syntax-highlighting pager for git diffs |
-| | gitlab-runner | GitLab CI runner |
-| **python-dev** | uv | Fast Python package manager |
-| | pip-tools | httpie, black, ruff |
-| | pip-build-tools | build, twine, hatchling |
-| | huggingface-hub | Hugging Face model hub CLI |
-| | pr-analyzers | gitlab-pr-analyzer, github-pr-analyzer, jira-lens |
-| | playwright | Browser automation framework |
-| | pgcli | PostgreSQL CLI with auto-completion |
-| | ai-ml-libs | chromadb, pgvector, langsmith, langfuse |
-| **ai-tools** | claude-code | Anthropic Claude Code CLI |
-| | codex-cli | OpenAI Codex CLI |
-| | cursor | Cursor AI editor (CLI installer) |
-| | yoyo | PTY proxy for AI agent auto-approve |
-| | arxs | Multi-source academic paper search CLI |
-| | ollama | Local LLM runner |
-| **gpu** | cuda-toolkit | NVIDIA CUDA toolkit (when GPU detected) |
-| | nvidia-driver | NVIDIA driver 550 (when GPU detected) |
-| **shell-enhancements** | zoxide | Smarter cd command (tracks frecency) |
-| | starship | Cross-shell prompt with minimal config |
-| | direnv | Per-directory environment variables |
-| **system-tools** | lsof | List open files and ports |
-| | netcat | TCP/UDP networking utility |
-| | tcpdump | Network packet analyzer |
-| | dnsutils | DNS lookup tools (dig, nslookup) |
-| | strace | System call tracer |
-| | sqlite3 | SQLite database CLI |
+### lang-runtimes — Language Runtimes & Version Managers
+
+| Tool | Description |
+|------|-------------|
+| nvm | Node.js version manager — switch between Node versions per project |
+| node-lts | Node.js LTS release, installed via nvm |
+| typescript | TypeScript compiler (`tsc`) |
+| golang | Go programming language |
+| rust | Rust toolchain via rustup (rustc, cargo, rustfmt) |
+| miniconda | Conda package/env manager — `auto_activate_base` disabled, use `conda activate` manually |
+| mise | Polyglot runtime manager (asdf replacement, manages Node/Python/Go/etc. versions) |
+
+### base — Core CLI Essentials
+
+**Editor & Terminal**
+
+| Tool | Description |
+|------|-------------|
+| git | Distributed version control |
+| neovim | Modern terminal editor (Vim fork) |
+| tmux | Terminal multiplexer — split panes, detach sessions |
+| tmux-ide | Scripted tmux session layouts (npm) |
+
+**Search & Navigation**
+
+| Tool | Description |
+|------|-------------|
+| fzf | Fuzzy finder — interactive filter for files, history, branches |
+| ripgrep | Recursive grep replacement (rg), extremely fast |
+| fd | Simpler, faster `find` alternative with sane defaults |
+| tree | Visualize directory structure as a tree |
+
+**Modern CLI Replacements (Rust-powered)**
+
+| Tool | Description |
+|------|-------------|
+| bat | `cat` replacement with syntax highlighting and Git integration |
+| eza | `ls` replacement with icons, colors, and Git status |
+
+**Data Processing**
+
+| Tool | Description |
+|------|-------------|
+| jq | Command-line JSON processor — parse API responses, transform configs |
+| yq | YAML/TOML/XML processor — edit CI configs, K8s manifests |
+
+**System Utilities**
+
+| Tool | Description |
+|------|-------------|
+| htop | Interactive process viewer and system monitor |
+| btop | Resource monitor with rich TUI (CPU, memory, disk, network) |
+| make | Build automation — many repos ship a Makefile by default |
+| curl | URL data transfer (HTTP client, API testing) |
+| wget | File downloader with resume support |
+| zip | Compression utility |
+| unzip | Decompression utility |
+| fonts-firacode | Fira Code programming font with ligatures |
+
+### git-tools — Git & CI/CD
+
+| Tool | Description |
+|------|-------------|
+| gh | GitHub CLI — PRs, issues, actions, repos from terminal |
+| glab | GitLab CLI — MRs, pipelines, issues from terminal |
+| lazygit | Terminal UI for git — staging, branching, rebasing visually |
+| delta | Git diff pager with syntax highlighting and side-by-side view |
+| gitlab-runner | GitLab CI runner — run CI jobs locally, manage runners |
+
+### python-dev — Python Ecosystem
+
+| Tool | Description |
+|------|-------------|
+| uv | Ultra-fast Python package installer (pip replacement) |
+| pip-tools | httpie (HTTP client), black (formatter), ruff (linter) |
+| pip-build-tools | build, twine, hatchling — Python package publishing |
+| huggingface-hub | Hugging Face CLI — download/upload models and datasets |
+| pr-analyzers | gitlab-pr-analyzer, github-pr-analyzer, jira-lens |
+| playwright | Browser automation for testing (Chromium/Firefox/WebKit) |
+| pgcli | PostgreSQL CLI with auto-completion and syntax highlighting |
+| ai-ml-libs | chromadb (vector DB), pgvector, langsmith, langfuse (LLM observability) |
+
+### ai-tools — AI & LLM
+
+| Tool | Description |
+|------|-------------|
+| claude-code | Anthropic Claude Code — AI coding assistant in terminal |
+| codex-cli | OpenAI Codex CLI — AI code generation |
+| cursor | Cursor AI editor (CLI installer) |
+| yoyo | PTY proxy for AI agent auto-approve workflows |
+| arxs | Multi-source academic paper search CLI |
+| ollama | Run LLMs locally (Llama, Mistral, etc.) |
+
+### gpu — NVIDIA GPU (conditional: `when: has_gpu`)
+
+| Tool | Description |
+|------|-------------|
+| cuda-toolkit | NVIDIA CUDA compiler and libraries |
+| nvidia-driver | NVIDIA driver v550 |
+
+### shell-enhancements — Shell Productivity
+
+| Tool | Description |
+|------|-------------|
+| zoxide | Smarter `cd` — learns your most-used directories |
+| starship | Cross-shell prompt with git status, language versions, minimal config |
+| direnv | Auto-load `.envrc` per directory — manage env vars per project |
+
+### system-tools — Debugging & Networking
+
+| Tool | Description |
+|------|-------------|
+| lsof | List open files and ports — find what's using port 8080 |
+| netcat | TCP/UDP Swiss Army knife — test connections, port scanning |
+| tcpdump | Network packet capture and analysis |
+| dnsutils | DNS lookup tools: `dig`, `nslookup` |
+| strace | Trace system calls — debug process behavior (Linux only) |
+| sqlite3 | SQLite database CLI — lightweight DB queries and debugging |
 
 ## Commands
 
@@ -159,6 +218,7 @@ isetup install                   Install all profiles
 isetup install -p base,ai-tools  Install specific profiles
 isetup install -f                Reinstall even if already installed
 isetup install --dry-run         Preview commands without executing
+isetup install --timeout 5m     Set per-tool timeout (default 10m)
 isetup list                      List all profiles and tools
 isetup version                   Print version
 ```
@@ -179,6 +239,8 @@ profiles:
     tools:
       - name: git
         apt: git
+        dnf: git
+        pacman: git
         brew: git
         choco: git
 
@@ -216,10 +278,12 @@ profiles:
           linux: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           darwin: |
             curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
             bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
 
       - name: pip-tools
@@ -339,18 +403,18 @@ OS: linux | Arch: amd64 | Shell: /bin/bash
 Package managers: apt, pip3, npm
 GPU: NVIDIA H200 NVL
 
-[1/22] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
-[1/22] nvm                  PASS    (shell ) 0.7s
-[2/22] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
-[2/22] node-lts             PASS    (shell ) 0.5s
-[3/22] git                  SKIP    already installed
-[4/22] Installing glab (shell: curl ... | sudo bash)...
-[4/22] glab                 PASS    (shell ) 2.1s
-[5/22] cuda-toolkit         FAILED  (apt   ) 1.1s
+[1/57] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
+[1/57] nvm                  PASS    (shell ) 0.7s
+[2/57] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
+[2/57] node-lts             PASS    (shell ) 0.5s
+[3/57] git                  SKIP    already installed
+[4/57] Installing glab (shell: curl ... | sudo bash)...
+[4/57] glab                 PASS    (shell ) 2.1s
+[5/57] cuda-toolkit         FAILED  (apt   ) 1.1s
        E: Unable to locate package nvidia-cuda-toolkit
 
 ─────────────────────────────
-Installed: 18 | Failed: 1 | Skipped: 3
+Installed: 50 | Failed: 1 | Skipped: 6
 Log: ~/.isetup/logs/isetup-2026-03-25T00-04-21.log
 ```
 
