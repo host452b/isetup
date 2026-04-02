@@ -19,6 +19,8 @@ func SetDefaultTemplate(data []byte) {
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Generate default ~/.isetup.yaml config",
+	Example: `  isetup init          Generate config from built-in template
+  isetup init --force  Overwrite existing config`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {

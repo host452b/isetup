@@ -49,6 +49,11 @@ func (e *ExitError) Error() string { return e.Message }
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install tools from config",
+	Example: `  isetup install                   Install all profiles
+  isetup install -p base,ai-tools  Install specific profiles
+  isetup install --dry-run         Preview without executing
+  isetup install -f                Force reinstall everything
+  isetup install --timeout 5m     Set 5-minute per-tool timeout`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := resolveConfigPath()
 		cfg, err := config.LoadFromFile(path)

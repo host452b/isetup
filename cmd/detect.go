@@ -10,6 +10,8 @@ import (
 var detectCmd = &cobra.Command{
 	Use:   "detect",
 	Short: "Print detected system information",
+	Example: `  isetup detect         Show system info as JSON
+  isetup detect | jq .  Pretty-print with jq`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		info := detector.Detect()
 		data, err := json.MarshalIndent(info, "", "  ")

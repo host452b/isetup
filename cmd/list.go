@@ -13,6 +13,8 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all profiles and tools in config",
+	Example: `  isetup list                     List tools from ~/.isetup.yaml
+  isetup list --config my.yaml   List tools from custom config`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := resolveConfigPath()
 		cfg, err := config.LoadFromFile(path)
