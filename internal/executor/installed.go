@@ -37,7 +37,23 @@ func IsInstalled(tool config.Tool) bool {
 		candidates = []string{"codex"}
 	case "claude-code":
 		candidates = []string{"claude"}
-	case "pip-tools", "pip-build-tools", "pr-analyzers":
+	case "huggingface-hub":
+		candidates = []string{"huggingface-cli"}
+	case "bat":
+		candidates = []string{"bat", "batcat"}
+	case "fd":
+		candidates = []string{"fd", "fdfind"}
+	case "netcat":
+		candidates = []string{"nc", "netcat", "ncat"}
+	case "make":
+		candidates = []string{"make"}
+	case "dnsutils":
+		candidates = []string{"dig", "nslookup"}
+	case "sqlite3":
+		candidates = []string{"sqlite3"}
+	case "gitlab-runner":
+		candidates = []string{"gitlab-runner"}
+	case "pip-tools", "pip-build-tools", "pr-analyzers", "ai-ml-libs":
 		// pip package groups — check if the first package is importable
 		if len(tool.Pip) > 0 {
 			candidates = []string{tool.Pip[0]}
