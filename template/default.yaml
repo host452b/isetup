@@ -71,16 +71,22 @@ profiles:
     tools:
       - name: git
         apt: git
+        dnf: git
+        pacman: git
         brew: git
         choco: git
 
       - name: neovim
         apt: neovim
+        dnf: neovim
+        pacman: neovim
         brew: neovim
         choco: neovim
 
       - name: tmux
         apt: tmux
+        dnf: tmux
+        pacman: tmux
         brew: tmux
 
       - name: tmux-ide
@@ -89,30 +95,42 @@ profiles:
 
       - name: fzf
         apt: fzf
+        dnf: fzf
+        pacman: fzf
         brew: fzf
         choco: fzf
 
       - name: ripgrep
         apt: ripgrep
+        dnf: ripgrep
+        pacman: ripgrep
         brew: ripgrep
         choco: ripgrep
 
       - name: bat
         apt: bat
+        dnf: bat
+        pacman: bat
         brew: bat
         choco: bat
 
       - name: eza
         apt: eza
+        dnf: eza
+        pacman: eza
         brew: eza
 
       - name: fd
         apt: fd-find
+        dnf: fd-find
+        pacman: fd
         brew: fd
         choco: fd
 
       - name: jq
         apt: jq
+        dnf: jq
+        pacman: jq
         brew: jq
         choco: jq
 
@@ -125,44 +143,62 @@ profiles:
 
       - name: tree
         apt: tree
+        dnf: tree
+        pacman: tree
         brew: tree
         choco: tree
 
       - name: htop
         apt: htop
+        dnf: htop
+        pacman: htop
         brew: htop
 
       - name: btop
         apt: btop
+        dnf: btop
+        pacman: btop
         brew: btop
 
       - name: fonts-firacode
         apt: fonts-firacode
+        dnf: fira-code-fonts
+        pacman: ttf-fira-code
         brew: font-fira-code
         choco: firacode
 
       - name: make
         apt: build-essential
+        dnf: make
+        pacman: make
         brew: make
         choco: make
 
       - name: curl
         apt: curl
+        dnf: curl
+        pacman: curl
         brew: curl
         choco: curl
 
       - name: wget
         apt: wget
+        dnf: wget
+        pacman: wget
         brew: wget
         choco: wget
 
       - name: zip
         apt: zip
+        dnf: zip
+        pacman: zip
         brew: zip
         choco: zip
 
       - name: unzip
         apt: unzip
+        dnf: unzip
+        pacman: unzip
         brew: unzip
         choco: unzip
 
@@ -304,6 +340,8 @@ profiles:
     tools:
       - name: cuda-toolkit
         apt: nvidia-cuda-toolkit
+        dnf: nvidia-cuda-toolkit
+        pacman: cuda
 
       - name: nvidia-driver
         apt: nvidia-driver-550
@@ -322,27 +360,41 @@ profiles:
 
       - name: direnv
         apt: direnv
+        dnf: direnv
+        pacman: direnv
         brew: direnv
 
   system-tools:
     tools:
       - name: lsof
         apt: lsof
+        dnf: lsof
+        pacman: lsof
 
       - name: netcat
         apt: netcat-openbsd
+        dnf: nmap-ncat
+        pacman: openbsd-netcat
 
       - name: tcpdump
         apt: tcpdump
+        dnf: tcpdump
+        pacman: tcpdump
 
       - name: dnsutils
         apt: dnsutils
+        dnf: bind-utils
+        pacman: bind
         brew: bind
 
       - name: strace
         apt: strace
+        dnf: strace
+        pacman: strace
 
       - name: sqlite3
         apt: sqlite3
+        dnf: sqlite
+        pacman: sqlite
         brew: sqlite
         choco: sqlite
