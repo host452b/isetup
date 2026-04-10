@@ -3,7 +3,7 @@ package detector
 import "os/exec"
 
 var knownPkgManagers = []string{
-	"apt", "dnf", "pacman", "brew", "choco", "winget", "pip3", "pip", "npm",
+	"apt", "apt-get", "dnf", "pacman", "brew", "choco", "winget", "pip3", "pip", "npm",
 }
 
 func DetectPkgManagers() []string {

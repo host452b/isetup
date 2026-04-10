@@ -13,7 +13,7 @@ func TestResolve_LinuxApt(t *testing.T) {
 	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt"}}
 	method, cmd := Resolve(tool, info)
 	assert.Equal(t, "apt", method)
-	assert.Equal(t, "sudo apt-get install -y git", cmd)
+	assert.Equal(t, "sudo apt install -y git", cmd)
 }
 
 func TestResolve_DarwinBrew(t *testing.T) {
@@ -118,7 +118,15 @@ func TestResolve_LinuxApt_Root(t *testing.T) {
 	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt"}, IsRoot: true}
 	method, cmd := Resolve(tool, info)
 	assert.Equal(t, "apt", method)
-	assert.Equal(t, "apt-get install -y git", cmd)
+	assert.Equal(t, "apt install -y git", cmd)
+}
+
+func TestResolve_LinuxAptGetFallback(t *testing.T) {
+	tool := config.Tool{Name: "git", Apt: "git"}
+	info := &detector.SystemInfo{OS: "linux", PkgManagers: []string{"apt-get"}}
+	method, cmd := Resolve(tool, info)
+	assert.Equal(t, "apt", method)
+	assert.Equal(t, "sudo apt-get install -y git", cmd)
 }
 
 func TestResolve_LinuxDnf_Root(t *testing.T) {
@@ -142,7 +150,7 @@ func TestResolve_AptSafePackageName(t *testing.T) {
 	tool := config.Tool{Name: "git", Apt: "git"}
 	method, cmd := Resolve(tool, info)
 	assert.Equal(t, "apt", method)
-	assert.Equal(t, "sudo apt-get install -y git", cmd)
+	assert.Equal(t, "sudo apt install -y git", cmd)
 }
 
 func TestResolve_RejectsShellMetachars(t *testing.T) {

@@ -38,7 +38,7 @@ func TestExecute_DryRun(t *testing.T) {
 	require.Len(t, results, 1)
 	assert.Equal(t, "git", results[0].Name)
 	assert.Equal(t, logger.StatusSuccess, results[0].Status)
-	assert.Equal(t, "sudo apt-get install -y git", results[0].Command)
+	assert.Equal(t, "sudo apt install -y git", results[0].Command)
 }
 
 func TestExecute_ProfileFilter(t *testing.T) {

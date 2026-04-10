@@ -25,13 +25,19 @@ New machine? `isetup install`. Done.
 
 ## Install
 
-**Linux / macOS (recommended):**
+**Easiest (if Go is installed):**
+
+```bash
+go install github.com/host452b/isetup@latest
+```
+
+**One-liner (Linux / macOS):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/host452b/isetup/main/install.sh | bash
 ```
 
-Or install to a custom directory:
+**Custom install directory:**
 
 ```bash
 INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/host452b/isetup/main/install.sh | bash
@@ -46,12 +52,6 @@ Invoke-WebRequest $url -OutFile isetup.zip
 Expand-Archive isetup.zip -DestinationPath .
 Move-Item -Force isetup.exe "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\"
 Remove-Item isetup.zip
-```
-
-**Go install:**
-
-```bash
-go install github.com/host452b/isetup@latest
 ```
 
 **From source:**
@@ -87,7 +87,7 @@ isetup install -p base,ai-tools
 
 ## Default Tools
 
-The built-in template installs **57 tools** across 8 profiles:
+The built-in template installs **58 tools** across 8 profiles:
 
 ### lang-runtimes — Language Runtimes & Version Managers
 
@@ -207,6 +207,7 @@ The built-in template installs **57 tools** across 8 profiles:
 | dnsutils | DNS lookup tools: `dig`, `nslookup` |
 | strace | Trace system calls — debug process behavior (Linux only) |
 | sqlite3 | SQLite database CLI — lightweight DB queries and debugging |
+| speedtest-cli | Network speed test from the terminal (`speedtest-cli --simple`) |
 
 ## Commands
 
@@ -462,6 +463,9 @@ isetup/
 
 **Tool install hangs:**
 Use `--timeout 2m` to set a shorter per-tool timeout. Check `~/.isetup/logs/` for the full command output.
+
+**Minimal container (no curl/wget):**
+isetup auto-detects missing prerequisites (curl, wget, ca-certificates, gnupg) and installs them via apt/apt-get before running any profiles. Works out-of-the-box in bare `ubuntu:22.04` Docker containers.
 
 **Permission denied:**
 isetup auto-detects root and omits `sudo`. If you're not root and `sudo` fails, ensure your user has sudo privileges.

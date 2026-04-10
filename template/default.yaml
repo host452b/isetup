@@ -401,3 +401,11 @@ profiles:
         pacman: sqlite
         brew: sqlite
         choco: sqlite
+
+      - name: speedtest-cli
+        apt: speedtest-cli
+        dnf: speedtest-cli
+        pacman: speedtest-cli
+        brew: speedtest-cli
+        pip:
+          - speedtest-cli

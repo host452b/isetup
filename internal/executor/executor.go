@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/host452b/isetup/internal/config"
@@ -28,6 +29,11 @@ type ProgressEvent struct {
 
 // Execute runs the full install pipeline. Returns results and an error if topology is invalid.
 func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
+	// Bootstrap: ensure minimal prerequisites exist (curl, wget, ca-certificates)
+	if !cfg.Settings.DryRun {
+		Bootstrap(ctx, info, lg)
+	}
+
 	entries := collectTools(cfg, info, profiles)
 
 	sorted, err := TopoSort(entries)
@@ -144,10 +150,23 @@ func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo,
 		toolCtx, toolCancel := context.WithTimeout(ctx, timeout)
 		runResult := Run(toolCtx, cmd, info.Shell)
 		toolCancel()
+
+		// apt → apt-get fallback: if "apt install" fails, retry with "apt-get install"
+		if runResult.ExitCode != 0 && method == "apt" && strings.Contains(cmd, "apt install") {
+			fallbackCmd := strings.Replace(cmd, "apt install", "apt-get install", 1)
+			toolCtx2, toolCancel2 := context.WithTimeout(ctx, timeout)
+			runResult = Run(toolCtx2, fallbackCmd, info.Shell)
+			toolCancel2()
+			if runResult.ExitCode == 0 {
+				cmd = fallbackCmd
+			}
+		}
+
 		result.ExitCode = runResult.ExitCode
 		result.Duration = runResult.Duration
 		result.Stdout = runResult.Stdout
 		result.Stderr = runResult.Stderr
+		result.Command = cmd
 
 		if runResult.ExitCode == 0 {
 			result.Status = logger.StatusSuccess

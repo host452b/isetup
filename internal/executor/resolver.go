@@ -80,8 +80,13 @@ func resolvePkgMgr(tool config.Tool, info *detector.SystemInfo) (string, string)
 	sudo := sudoPrefix(info)
 	switch info.OS {
 	case "linux":
-		if tool.Apt != "" && hasPkgMgr(info.PkgManagers, "apt") && isSafePkgName(tool.Apt) {
-			return "apt", fmt.Sprintf("%sapt-get install -y %s", sudo, tool.Apt)
+		if tool.Apt != "" && isSafePkgName(tool.Apt) {
+			if hasPkgMgr(info.PkgManagers, "apt") {
+				return "apt", fmt.Sprintf("%sapt install -y %s", sudo, tool.Apt)
+			}
+			if hasPkgMgr(info.PkgManagers, "apt-get") {
+				return "apt", fmt.Sprintf("%sapt-get install -y %s", sudo, tool.Apt)
+			}
 		}
 		if tool.Dnf != "" && hasPkgMgr(info.PkgManagers, "dnf") && isSafePkgName(tool.Dnf) {
 			return "dnf", fmt.Sprintf("%sdnf install -y %s", sudo, tool.Dnf)
