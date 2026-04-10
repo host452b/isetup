@@ -257,12 +257,12 @@ func resolveLogDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err == nil {
 		primary := filepath.Join(home, ".isetup", "logs")
-		if err := os.MkdirAll(primary, 0755); err == nil {
+		if err := os.MkdirAll(primary, 0700); err == nil {
 			return primary, nil
 		}
 	}
 	fallback := "./isetup-logs"
-	if err := os.MkdirAll(fallback, 0755); err != nil {
+	if err := os.MkdirAll(fallback, 0700); err != nil {
 		return "", fmt.Errorf("cannot create log directory: tried ~/.isetup/logs/ and ./isetup-logs/")
 	}
 	return fallback, nil

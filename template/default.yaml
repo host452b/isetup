@@ -115,7 +115,10 @@ profiles:
         shell:
           linux: |
             YQ_ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
-            curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" -o /tmp/yq && sudo install /tmp/yq /usr/local/bin/yq
+            TMPFILE=$(mktemp /tmp/yq-XXXXXX)
+            curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" -o "$TMPFILE"
+            sudo install "$TMPFILE" /usr/local/bin/yq
+            rm -f "$TMPFILE"
 
       - name: tree
         apt: tree
@@ -185,8 +188,10 @@ profiles:
         shell:
           linux: |
             GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
-            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
-            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+            TMPFILE=$(mktemp /tmp/go-XXXXXX.tar.gz)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o "$TMPFILE"
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf "$TMPFILE"
+            rm -f "$TMPFILE"
             echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
           windows: |
             winget install --id GoLang.Go -e --accept-source-agreements
@@ -205,13 +210,17 @@ profiles:
         depends_on: curl
         shell:
           linux: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            TMPFILE=$(mktemp /tmp/miniconda-XXXXXX.sh)
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o "$TMPFILE"
+            bash "$TMPFILE" -b -p $HOME/miniconda3
+            rm -f "$TMPFILE"
             $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           darwin: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            TMPFILE=$(mktemp /tmp/miniconda-XXXXXX.sh)
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o "$TMPFILE"
+            bash "$TMPFILE" -b -p $HOME/miniconda3
+            rm -f "$TMPFILE"
             $HOME/miniconda3/bin/conda config --set auto_activate_base false
             $HOME/miniconda3/bin/conda init
           windows: |
@@ -276,7 +285,10 @@ profiles:
         shell:
           linux: |
             DELTA_VER=$(curl -fsSL "https://api.github.com/repos/dandavison/delta/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
-            curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/git-delta_${DELTA_VER}_$(dpkg --print-architecture).deb" -o /tmp/git-delta.deb && sudo dpkg -i /tmp/git-delta.deb
+            TMPFILE=$(mktemp /tmp/git-delta-XXXXXX.deb)
+            curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VER}/git-delta_${DELTA_VER}_$(dpkg --print-architecture).deb" -o "$TMPFILE"
+            sudo dpkg -i "$TMPFILE"
+            rm -f "$TMPFILE"
 
       - name: gitlab-runner
         brew: gitlab-runner

@@ -45,7 +45,7 @@ type Logger struct {
 }
 
 func New(dir string) (*Logger, error) {
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("create log dir: %w", err)
 	}
 
@@ -72,8 +72,6 @@ func (l *Logger) WriteEnvJSON(info *detector.SystemInfo, version, configPath str
 		"gpu":                info.GPU,
 		"pkg_managers":       info.PkgManagers,
 		"env_vars": map[string]string{
-			"PATH": os.Getenv("PATH"),
-			"HOME": os.Getenv("HOME"),
 			"LANG": os.Getenv("LANG"),
 		},
 		"isetup_version": version,
@@ -86,11 +84,11 @@ func (l *Logger) WriteEnvJSON(info *detector.SystemInfo, version, configPath str
 	if err != nil {
 		return fmt.Errorf("marshal env json: %w", err)
 	}
-	return os.WriteFile(l.envPath, data, 0644)
+	return os.WriteFile(l.envPath, data, 0600)
 }
 
 func (l *Logger) WriteToolResult(r ToolResult) error {
-	f, err := os.OpenFile(l.logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(l.logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("open log file: %w", err)
 	}
