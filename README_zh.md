@@ -87,7 +87,7 @@ isetup install -p base,ai-tools
 
 ## 默认工具
 
-内置模板安装 **58 个工具**，分布在 8 个 profile 中：
+内置模板安装 **61 个工具**，分布在 8 个 profile 中：
 
 ### lang-runtimes — 语言运行时与版本管理
 

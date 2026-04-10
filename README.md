@@ -87,7 +87,7 @@ isetup install -p 00-base,04-ai-tools
 
 ## Default Tools
 
-The built-in template installs **58 tools** across 8 profiles:
+The built-in template installs **61 tools** across 8 profiles:
 
 ### lang-runtimes — Language Runtimes & Version Managers
 
@@ -170,6 +170,7 @@ The built-in template installs **58 tools** across 8 profiles:
 | playwright | Browser automation for testing (Chromium/Firefox/WebKit) |
 | pgcli | PostgreSQL CLI with auto-completion and syntax highlighting |
 | ai-ml-libs | chromadb (vector DB), pgvector, langsmith, langfuse (LLM observability) |
+| casts-down | Podcast download + Whisper transcription CLI |
 
 ### ai-tools — AI & LLM
 
@@ -179,8 +180,9 @@ The built-in template installs **58 tools** across 8 profiles:
 | codex-cli | OpenAI Codex CLI — AI code generation |
 | cursor | Cursor AI editor (CLI installer) |
 | yoyo | PTY proxy for AI agent auto-approve workflows |
-| arxs | Multi-source academic paper search CLI |
+| arxs | Multi-source academic paper search CLI (`go install` preferred, shell fallback) |
 | ollama | Run LLMs locally (Llama, Mistral, etc.) |
+| llama-cpp | High-performance C++ LLM inference (llama-cli, llama-server) |
 
 ### gpu — NVIDIA GPU (conditional: `when: has_gpu`)
 
@@ -207,6 +209,7 @@ The built-in template installs **58 tools** across 8 profiles:
 | dnsutils | DNS lookup tools: `dig`, `nslookup` |
 | strace | Trace system calls — debug process behavior (Linux only) |
 | sqlite3 | SQLite database CLI — lightweight DB queries and debugging |
+| net-tools | Classic network commands: `ifconfig`, `netstat`, `route` |
 | speedtest-cli | Network speed test from the terminal (`speedtest-cli --simple`) |
 
 ## Commands

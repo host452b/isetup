@@ -352,6 +352,11 @@ profiles:
           - langsmith
           - langfuse
 
+      - name: casts-down
+        depends_on: miniconda
+        pip:
+          - casts_down
+
   # ─── Layer 5: AI & LLM tools ──────────────────────────────────
   04-ai-tools:
     tools:
@@ -376,9 +381,14 @@ profiles:
           unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
 
       - name: arxs
-        depends_on: curl
+        depends_on: golang
         shell:
-          unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
+          unix: |
+            if command -v go >/dev/null 2>&1; then
+              go install github.com/host452b/arxs/v2@latest
+            else
+              curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh
+            fi
           windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
 
       - name: ollama
@@ -386,6 +396,18 @@ profiles:
         depends_on: curl
         shell:
           linux: "curl -fsSL https://ollama.com/install.sh | sh"
+
+      - name: llama-cpp
+        brew: llama.cpp
+        depends_on: curl
+        shell:
+          linux: |
+            TMPDIR=$(mktemp -d)
+            git clone --depth 1 https://github.com/ggerganov/llama.cpp "$TMPDIR/llama.cpp"
+            cd "$TMPDIR/llama.cpp" && make -j$(nproc)
+            sudo cp "$TMPDIR/llama.cpp/llama-cli" /usr/local/bin/llama-cli
+            sudo cp "$TMPDIR/llama.cpp/llama-server" /usr/local/bin/llama-server
+            rm -rf "$TMPDIR"
 
   # ─── Layer 6: Shell enhancements ──────────────────────────────
   05-shell-enhancements:
@@ -411,6 +433,11 @@ profiles:
   # ─── Layer 7: System & debug tools ────────────────────────────
   06-system-tools:
     tools:
+      - name: net-tools
+        apt: net-tools
+        dnf: net-tools
+        pacman: net-tools
+
       - name: lsof
         apt: lsof
         dnf: lsof
