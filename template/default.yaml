@@ -109,6 +109,18 @@ profiles:
         brew: jq
         choco: jq
 
+      - name: glow
+        apt: glow
+        brew: glow
+        choco: glow
+        shell:
+          linux: |
+            TMPFILE=$(mktemp /tmp/glow-XXXXXX.deb)
+            GLOW_ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
+            curl -fsSL "https://github.com/charmbracelet/glow/releases/latest/download/glow_${GLOW_ARCH}.deb" -o "$TMPFILE"
+            sudo dpkg -i "$TMPFILE"
+            rm -f "$TMPFILE"
+
       - name: yq
         brew: yq
         depends_on: curl

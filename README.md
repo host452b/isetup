@@ -1,6 +1,6 @@
 # isetup
 
-> Last synced with code: **2026-04-10** · 61 tools · 8 profiles · Go 1.22+
+> Last synced with code: **2026-04-10** · 62 tools · 8 profiles · Go 1.22+
 
 [中文文档](README_zh.md)
 
@@ -89,7 +89,7 @@ isetup install -p 00-base,04-ai-tools
 
 ## Default Tools
 
-The built-in template installs **61 tools** across 8 profiles:
+The built-in template installs **62 tools** across 8 profiles:
 
 ### lang-runtimes — Language Runtimes & Version Managers
 
@@ -134,6 +134,7 @@ The built-in template installs **61 tools** across 8 profiles:
 
 | Tool | Description |
 |------|-------------|
+| glow | Terminal Markdown reader — TUI browser, remote file rendering |
 | jq | Command-line JSON processor — parse API responses, transform configs |
 | yq | YAML/TOML/XML processor — edit CI configs, K8s manifests |
 
@@ -418,11 +419,14 @@ isetup/
 
 ## Install Flow
 
-What happens when you run `isetup install`:
+What happens when you run `curl -fsSL ... | bash` or `isetup install`:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  isetup install                                              │
+│  curl -fsSL .../install.sh | bash                            │
+│  → downloads isetup binary                                   │
+│  → automatically runs: isetup install                        │
+│  (skip auto-install: ISETUP_NO_AUTO_INSTALL=1)              │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
@@ -471,6 +475,10 @@ What happens when you run `isetup install`:
 │                                                              │
 │     Log: stdout, stderr, exit code, duration                │
 │     Report: PASS / FAIL / SKIP                              │
+│                                                              │
+│     On FAIL:                                                 │
+│       • Print first 3 lines of stderr                       │
+│       • Print retry command (copy-pasteable)                │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
@@ -478,6 +486,10 @@ What happens when you run `isetup install`:
 │  6. SUMMARY                                                  │
 │     Installed: N | Failed: N | Skipped: N                   │
 │     Log: ~/.isetup/logs/isetup-<timestamp>.log              │
+│                                                              │
+│     If failures:                                             │
+│       • List all failed tools with retry commands           │
+│       • "Tip: paste to AI assistant for diagnosis"          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
