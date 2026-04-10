@@ -543,6 +543,18 @@ go build -o isetup .
 
 Requires Go 1.22+.
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README.md](README.md) | This file — features, install, usage, flow diagram |
+| [README_zh.md](README_zh.md) | Chinese documentation |
+| [CHANGELOG.md](CHANGELOG.md) | Version history with all changes |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to add tools and submit PRs |
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [CLAUDE.md](CLAUDE.md) | Project rules for AI agents (coding conventions) |
+| [template/default.yaml](template/default.yaml) | Full 62-tool configuration (the source of truth) |
+
 ## License
 
 MIT
