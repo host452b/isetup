@@ -12,7 +12,7 @@ New machine? `isetup install`. Done.
 
 - **Auto-detection** — OS, architecture, distro, GPU, available package managers, shell
 - **Multi-platform** — macOS, Linux (Ubuntu/Fedora/Arch), Windows, WSL
-- **Profile-based config** — group tools by use case (`lang-runtimes`, `base`, `git-tools`, `python-dev`, `ai-tools`, `gpu`, `shell-enhancements`, `system-tools`)
+- **Profile-based config** — group tools by use case (`00-base`, `01-lang-runtimes`, `02-git-tools`, `03-python-dev`, `04-ai-tools`, `05-shell-enhancements`, `06-system-tools`, `07-gpu`)
 - **Adaptive install** — automatically picks `brew`, `apt`, `choco`, `winget`, `dnf`, `pacman`, or custom shell scripts based on what's available
 - **Root / Docker aware** — auto-detects UID 0 and omits `sudo` so installs work inside containers without `sudo` installed
 - **Template variables** — `{{.Arch}}`, `{{.OS}}`, `{{.Home}}` in shell commands for arch-aware downloads
@@ -82,7 +82,7 @@ isetup install --dry-run
 isetup install
 
 # Install specific profiles only
-isetup install -p base,ai-tools
+isetup install -p 00-base,04-ai-tools
 ```
 
 ## Default Tools
@@ -216,7 +216,7 @@ isetup init                      Generate default ~/.isetup.yaml
 isetup init --force              Overwrite existing config
 isetup detect                    Print detected system info as JSON
 isetup install                   Install all profiles
-isetup install -p base,ai-tools  Install specific profiles
+isetup install -p 00-base,04-ai-tools  Install specific profiles
 isetup install -f                Reinstall even if already installed
 isetup install --dry-run         Preview commands without executing
 isetup install --timeout 5m     Set per-tool timeout (default 10m)

@@ -1,5 +1,19 @@
 # isetup configuration — edit to match your setup
 # Docs: https://github.com/host452b/isetup
+#
+# Install order (pyramid, bottom-up):
+#   Layer 0: bootstrap (auto) — curl, wget, ca-certificates, gnupg
+#   Layer 1: 00-base         — apt packages, no external deps
+#   Layer 2: 01-lang-runtimes — nvm, node, go, rust, conda (needs curl)
+#   Layer 3: 02-git-tools     — gh, glab, lazygit (needs curl)
+#   Layer 4: 03-python-dev    — pip packages (needs miniconda)
+#   Layer 5: 04-ai-tools      — claude, codex (needs node-lts + curl)
+#   Layer 6: 05-shell-enhancements — zoxide, starship (needs curl)
+#   Layer 7: 06-system-tools  — debug & network tools (apt)
+#   Layer 8: 07-gpu           — conditional NVIDIA packages
+#
+# Profiles are sorted alphabetically, so 00- 01- 02- prefixes ensure
+# correct pyramid ordering.
 
 version: 1
 
@@ -8,76 +22,38 @@ settings:
   dry_run: false
 
 profiles:
-  # Language runtimes — installed first, other tools depend on these
-  lang-runtimes:
+  # ─── Layer 1: System foundation ────────────────────────────────
+  # Pure package-manager installs. No shell scripts. No curl needed.
+  # The bootstrap phase already installed curl/wget/ca-certs/gnupg.
+  00-base:
     tools:
-      - name: nvm
-        shell:
-          unix: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          windows: |
-            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
+      - name: curl
+        apt: curl
+        dnf: curl
+        pacman: curl
+        brew: curl
+        choco: curl
 
-      - name: node-lts
-        depends_on: nvm
-        shell:
-          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
-          windows: "nvm install lts && nvm use lts"
+      - name: wget
+        apt: wget
+        dnf: wget
+        pacman: wget
+        brew: wget
+        choco: wget
 
-      - name: typescript
-        depends_on: node-lts
-        npm: typescript
-
-      - name: golang
-        brew: go
-        shell:
-          linux: |
-            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
-            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
-            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
-            echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-          windows: |
-            winget install --id GoLang.Go -e --accept-source-agreements
-        choco: golang
-        winget: GoLang.Go
-
-      - name: rust
-        shell:
-          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-          windows: |
-            irm https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
-            .\rustup-init.exe -y
-
-      - name: miniconda
-        shell:
-          linux: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda config --set auto_activate_base false
-            $HOME/miniconda3/bin/conda init
-          darwin: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda config --set auto_activate_base false
-            $HOME/miniconda3/bin/conda init
-          windows: |
-            irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
-            Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
-            & "$env:USERPROFILE\miniconda3\condabin\conda" config --set auto_activate_base false
-
-      - name: mise
-        brew: mise
-        shell:
-          unix: "curl https://mise.run | sh"
-
-  base:
-    tools:
       - name: git
         apt: git
         dnf: git
         pacman: git
         brew: git
         choco: git
+
+      - name: make
+        apt: build-essential
+        dnf: make
+        pacman: make
+        brew: make
+        choco: make
 
       - name: neovim
         apt: neovim
@@ -91,10 +67,6 @@ profiles:
         dnf: tmux
         pacman: tmux
         brew: tmux
-
-      - name: tmux-ide
-        depends_on: node-lts
-        npm: tmux-ide
 
       - name: fzf
         apt: fzf
@@ -139,6 +111,7 @@ profiles:
 
       - name: yq
         brew: yq
+        depends_on: curl
         shell:
           linux: |
             YQ_ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
@@ -170,27 +143,6 @@ profiles:
         brew: font-fira-code
         choco: firacode
 
-      - name: make
-        apt: build-essential
-        dnf: make
-        pacman: make
-        brew: make
-        choco: make
-
-      - name: curl
-        apt: curl
-        dnf: curl
-        pacman: curl
-        brew: curl
-        choco: curl
-
-      - name: wget
-        apt: wget
-        dnf: wget
-        pacman: wget
-        brew: wget
-        choco: wget
-
       - name: zip
         apt: zip
         dnf: zip
@@ -205,12 +157,86 @@ profiles:
         brew: unzip
         choco: unzip
 
-  git-tools:
+  # ─── Layer 2: Language runtimes ────────────────────────────────
+  # All shell scripts need curl (guaranteed by bootstrap + 00-base).
+  01-lang-runtimes:
+    tools:
+      - name: nvm
+        depends_on: curl
+        shell:
+          unix: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          windows: |
+            irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
+
+      - name: node-lts
+        depends_on: nvm
+        shell:
+          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
+          windows: "nvm install lts && nvm use lts"
+
+      - name: typescript
+        depends_on: node-lts
+        npm: typescript
+
+      - name: golang
+        brew: go
+        depends_on: curl
+        shell:
+          linux: |
+            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+            echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+          windows: |
+            winget install --id GoLang.Go -e --accept-source-agreements
+        choco: golang
+        winget: GoLang.Go
+
+      - name: rust
+        depends_on: curl
+        shell:
+          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          windows: |
+            irm https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
+            .\rustup-init.exe -y
+
+      - name: miniconda
+        depends_on: curl
+        shell:
+          linux: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
+            $HOME/miniconda3/bin/conda init
+          darwin: |
+            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
+            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
+            $HOME/miniconda3/bin/conda config --set auto_activate_base false
+            $HOME/miniconda3/bin/conda init
+          windows: |
+            irm https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile miniconda.exe
+            Start-Process .\miniconda.exe -ArgumentList '/S /D=%USERPROFILE%\miniconda3' -Wait
+            & "$env:USERPROFILE\miniconda3\condabin\conda" config --set auto_activate_base false
+
+      - name: mise
+        brew: mise
+        depends_on: curl
+        shell:
+          unix: "curl https://mise.run | sh"
+
+      - name: tmux-ide
+        depends_on: node-lts
+        npm: tmux-ide
+
+  # ─── Layer 3: Git & CI/CD tools ───────────────────────────────
+  02-git-tools:
     tools:
       - name: glab
         brew: glab
         choco: glab
         winget: glab.glab
+        depends_on: curl
         shell:
           linux: |
             curl -fsSL "https://packages.gitlab.com/install/repositories/gitlab/glab/script.deb.sh" | sudo bash
@@ -220,6 +246,7 @@ profiles:
         brew: gh
         choco: gh
         winget: GitHub.cli
+        depends_on: wget
         shell:
           linux: |
             (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
@@ -235,6 +262,7 @@ profiles:
       - name: lazygit
         brew: lazygit
         choco: lazygit
+        depends_on: curl
         shell:
           linux: |
             LAZYGIT_VERSION=$(curl -fsSL "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -oP '"tag_name": "v\K[^"]+')
@@ -244,6 +272,7 @@ profiles:
       - name: delta
         brew: git-delta
         choco: delta
+        depends_on: curl
         shell:
           linux: |
             DELTA_VER=$(curl -fsSL "https://api.github.com/repos/dandavison/delta/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
@@ -251,12 +280,15 @@ profiles:
 
       - name: gitlab-runner
         brew: gitlab-runner
+        depends_on: curl
         shell:
           linux: |
             curl -fsSL "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
             sudo apt-get install -y gitlab-runner
 
-  python-dev:
+  # ─── Layer 4: Python ecosystem ─────────────────────────────────
+  # All tools here depend on miniconda (provides pip).
+  03-python-dev:
     tools:
       - name: uv
         depends_on: miniconda
@@ -308,7 +340,8 @@ profiles:
           - langsmith
           - langfuse
 
-  ai-tools:
+  # ─── Layer 5: AI & LLM tools ──────────────────────────────────
+  04-ai-tools:
     tools:
       - name: claude-code
         depends_on: node-lts
@@ -321,43 +354,39 @@ profiles:
         npm: "@openai/codex"
 
       - name: cursor
+        depends_on: curl
         shell:
           unix: "curl -fsS https://cursor.com/install | bash"
 
       - name: yoyo
+        depends_on: curl
         shell:
           unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
 
       - name: arxs
+        depends_on: curl
         shell:
           unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
           windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
 
       - name: ollama
         brew: ollama
+        depends_on: curl
         shell:
           linux: "curl -fsSL https://ollama.com/install.sh | sh"
 
-  gpu:
-    when: has_gpu
-    tools:
-      - name: cuda-toolkit
-        apt: nvidia-cuda-toolkit
-        dnf: nvidia-cuda-toolkit
-        pacman: cuda
-
-      - name: nvidia-driver
-        apt: nvidia-driver-550
-
-  shell-enhancements:
+  # ─── Layer 6: Shell enhancements ──────────────────────────────
+  05-shell-enhancements:
     tools:
       - name: zoxide
         brew: zoxide
+        depends_on: curl
         shell:
           unix: "curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh"
 
       - name: starship
         brew: starship
+        depends_on: curl
         shell:
           unix: "curl -sS https://starship.rs/install.sh | sh -s -- -y"
 
@@ -367,7 +396,8 @@ profiles:
         pacman: direnv
         brew: direnv
 
-  system-tools:
+  # ─── Layer 7: System & debug tools ────────────────────────────
+  06-system-tools:
     tools:
       - name: lsof
         apt: lsof
@@ -409,3 +439,15 @@ profiles:
         brew: speedtest-cli
         pip:
           - speedtest-cli
+
+  # ─── Layer 8: GPU (conditional) ────────────────────────────────
+  07-gpu:
+    when: has_gpu
+    tools:
+      - name: cuda-toolkit
+        apt: nvidia-cuda-toolkit
+        dnf: nvidia-cuda-toolkit
+        pacman: cuda
+
+      - name: nvidia-driver
+        apt: nvidia-driver-550
