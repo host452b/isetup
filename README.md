@@ -1,5 +1,7 @@
 # isetup
 
+> Last synced with code: **2026-04-10** · 61 tools · 8 profiles · Go 1.22+
+
 [中文文档](README_zh.md)
 
 Cross-platform CLI tool that detects your OS, hardware, and architecture, then adaptively runs the right install commands to one-click deploy your dev environment.
@@ -239,8 +241,12 @@ settings:
   dry_run: false
 
 profiles:
-  base:
+  00-base:
     tools:
+      - name: curl
+        apt: curl
+        brew: curl
+
       - name: git
         apt: git
         dnf: git
@@ -248,17 +254,12 @@ profiles:
         brew: git
         choco: git
 
-      - name: neovim
-        apt: neovim
-        brew: neovim
-        choco: neovim
-
-  lang-runtimes:
+  01-lang-runtimes:
     tools:
       - name: nvm
+        depends_on: curl
         shell:
-          unix: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          unix: "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
 
       - name: node-lts
         depends_on: nvm
@@ -267,87 +268,40 @@ profiles:
 
       - name: golang
         brew: go
+        depends_on: curl
         shell:
           linux: |
             GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
-            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o /tmp/go.tar.gz
-            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+            TMPFILE=$(mktemp /tmp/go-XXXXXX.tar.gz)
+            curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o "$TMPFILE"
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf "$TMPFILE"
+            rm -f "$TMPFILE"
 
-      - name: rust
-        shell:
-          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-
-      - name: miniconda
-        shell:
-          linux: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda config --set auto_activate_base false
-            $HOME/miniconda3/bin/conda init
-          darwin: |
-            curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-{{.Arch}}.sh -o /tmp/miniconda.sh
-            bash /tmp/miniconda.sh -b -p $HOME/miniconda3
-            $HOME/miniconda3/bin/conda config --set auto_activate_base false
-            $HOME/miniconda3/bin/conda init
-
-      - name: pip-tools
-        depends_on: miniconda
-        pip:
-          - httpie
-          - black
-          - ruff
-
-  git-tools:
-    tools:
-      - name: glab
-        brew: glab
-        shell:
-          linux: |
-            curl -fsSL "https://packages.gitlab.com/install/repositories/gitlab/glab/script.deb.sh" | sudo bash
-            sudo apt-get install -y glab
-
-      - name: gh
-        brew: gh
-        shell:
-          linux: |
-            # Official GitHub CLI repo
-            wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt update && sudo apt install gh -y
-
-  ai-tools:
+  04-ai-tools:
     tools:
       - name: claude-code
         depends_on: node-lts
         shell:
           unix: "curl -fsSL https://claude.ai/install.sh | bash"
-          windows: "irm https://claude.ai/install.ps1 | iex"
-
-      - name: codex-cli
-        depends_on: node-lts
-        npm: "@openai/codex"
-
-      - name: cursor
-        shell:
-          unix: "curl -fsS https://cursor.com/install | bash"
-
-      - name: yoyo
-        shell:
-          unix: "curl -fsSL https://github.com/host452b/yoyo/releases/latest/download/install.sh | sh"
 
       - name: arxs
+        depends_on: golang
         shell:
-          unix: "curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh"
-          windows: "irm https://raw.githubusercontent.com/host452b/arxs/main/install.ps1 | iex"
+          unix: |
+            if command -v go >/dev/null 2>&1; then
+              go install github.com/host452b/arxs/v2@latest
+            else
+              curl -fsSL https://raw.githubusercontent.com/host452b/arxs/main/install.sh | sh
+            fi
 
-  gpu:
+  07-gpu:
     when: has_gpu
     tools:
       - name: cuda-toolkit
         apt: nvidia-cuda-toolkit
-      - name: nvidia-driver
-        apt: nvidia-driver-550
 ```
+
+> See `template/default.yaml` for the full 61-tool configuration.
 
 ### Install Methods
 
@@ -355,7 +309,7 @@ Each tool can declare multiple install methods. isetup picks the best one for th
 
 | Key | Expands to | Platform |
 |-----|-----------|----------|
-| `apt: X` | `sudo apt-get install -y X` | Linux (Debian/Ubuntu) — `sudo` omitted when root |
+| `apt: X` | `sudo apt install -y X` (fallback: `apt-get`) | Linux (Debian/Ubuntu) — `sudo` omitted when root |
 | `dnf: X` | `sudo dnf install -y X` | Linux (Fedora/RHEL) — `sudo` omitted when root |
 | `pacman: X` | `sudo pacman -S --noconfirm X` | Linux (Arch) — `sudo` omitted when root |
 | `brew: X` | `brew install X` | macOS |
@@ -396,7 +350,7 @@ Logs are written to `~/.isetup/logs/` (override with `--log-dir`).
 
 Each run produces two files:
 
-- `isetup-<timestamp>.env.json` — full environment snapshot (OS, arch, GPU, PATH, etc.)
+- `isetup-<timestamp>.env.json` — environment snapshot (OS, arch, GPU, pkg managers — no sensitive env vars)
 - `isetup-<timestamp>.log` — per-tool install record with command, stdout, stderr, exit code, duration
 
 Example terminal output:
@@ -407,14 +361,14 @@ OS: linux | Arch: amd64 | Shell: /bin/bash
 Package managers: apt, pip3, npm
 GPU: NVIDIA H200 NVL
 
-[1/57] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
-[1/57] nvm                  PASS    (shell ) 0.7s
-[2/57] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
-[2/57] node-lts             PASS    (shell ) 0.5s
-[3/57] git                  SKIP    already installed
-[4/57] Installing glab (shell: curl ... | sudo bash)...
-[4/57] glab                 PASS    (shell ) 2.1s
-[5/57] cuda-toolkit         FAILED  (apt   ) 1.1s
+[1/61] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
+[1/61] nvm                  PASS    (shell ) 0.7s
+[2/61] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
+[2/61] node-lts             PASS    (shell ) 0.5s
+[3/61] git                  SKIP    already installed
+[4/61] Installing glab (shell: curl ... | sudo bash)...
+[4/61] glab                 PASS    (shell ) 2.1s
+[5/61] cuda-toolkit         FAILED  (apt   ) 1.1s
        E: Unable to locate package nvidia-cuda-toolkit
 
 ─────────────────────────────
@@ -456,10 +410,89 @@ isetup/
 ├── internal/
 │   ├── config/              # YAML parsing + validation
 │   ├── detector/            # OS/GPU/shell/pkg manager detection
-│   ├── executor/            # Install engine (resolver, runner, topo sort)
+│   ├── executor/            # Install engine (bootstrap, resolver, runner, topo sort)
 │   └── logger/              # Structured logging
 └── template/
     └── default.yaml         # Default config template
+```
+
+## Install Flow
+
+What happens when you run `isetup install`:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  isetup install                                              │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  1. DETECT SYSTEM                                            │
+│     OS, arch, distro, GPU, shell, package managers          │
+│     → SystemInfo struct                                      │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  2. LOAD CONFIG                                              │
+│     ~/.isetup.yaml → parse YAML → validate                  │
+│     (if no config: use embedded default.yaml)               │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  3. BOOTSTRAP (minimal containers only)                      │
+│     Missing curl/wget/ca-certificates/gnupg?                │
+│     → apt update && apt install -y ...                       │
+│     → fallback: apt-get if apt fails                        │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  4. COLLECT & SORT TOOLS                                     │
+│     Profiles sorted alphabetically (00-base → 07-gpu)       │
+│     Topological sort by depends_on                          │
+│     → ordered tool list                                      │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  5. FOR EACH TOOL:                                           │
+│                                                              │
+│     ┌── already in PATH?  → SKIP                            │
+│     ├── depends_on failed? → SKIP                           │
+│     ├── when: condition not met? → SKIP                     │
+│     └── resolve install method:                             │
+│         shell.linux > apt > dnf > pacman > pip > npm        │
+│                                                              │
+│     Execute command (timeout: 10m default)                   │
+│     If apt fails → retry with apt-get                       │
+│     If root → strip sudo from commands                      │
+│                                                              │
+│     Log: stdout, stderr, exit code, duration                │
+│     Report: PASS / FAIL / SKIP                              │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  6. SUMMARY                                                  │
+│     Installed: N | Failed: N | Skipped: N                   │
+│     Log: ~/.isetup/logs/isetup-<timestamp>.log              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Install Method Resolution (per tool)
+
+```
+Has shell.linux / shell.darwin / shell.windows?
+  → YES: use it (highest priority — exact OS match)
+  → NO: check shell.unix fallback
+         → YES: use it (linux + darwin)
+         → NO: try package managers:
+                apt → apt-get (fallback) → dnf → pacman → brew → choco → winget
+                → pip (conda pip > pip3 > pip)
+                → npm
+                → no method found: SKIP
 ```
 
 ## Troubleshooting
