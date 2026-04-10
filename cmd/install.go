@@ -174,10 +174,22 @@ var installCmd = &cobra.Command{
 				case logger.StatusFailed:
 					fmt.Printf("%s%s %s%-20s FAILED%s  (%-6s) %s\n",
 						colorDim, step, colorRed, ev.Name, colorReset, ev.Result.Method, ev.Result.Duration)
+					// Print failure reason (first 3 lines of stderr)
 					if ev.Result.Stderr != "" {
-						// Print first line of stderr for quick debug
-						lines := strings.SplitN(ev.Result.Stderr, "\n", 2)
-						fmt.Printf("       %s%s%s\n", colorDim, truncate(lines[0], 80), colorReset)
+						lines := strings.Split(ev.Result.Stderr, "\n")
+						for i, line := range lines {
+							if i >= 3 {
+								break
+							}
+							line = strings.TrimSpace(line)
+							if line != "" {
+								fmt.Printf("       %s%s%s\n", colorRed, truncate(line, 100), colorReset)
+							}
+						}
+					}
+					// Print retry command for user / AI diagnosis
+					if ev.Result.Command != "" {
+						fmt.Printf("       %sRetry: %s%s\n", colorDim, ev.Result.Command, colorReset)
 					}
 				case logger.StatusSkipped:
 					fmt.Printf("%s%s %s%-20s SKIP%s    %s\n",
@@ -225,6 +237,16 @@ var installCmd = &cobra.Command{
 		}
 
 		if failed > 0 {
+			// Print failed tool summary with retry commands
+			fmt.Printf("\n%sFailed tools — retry commands:%s\n", colorRed, colorReset)
+			for _, r := range results {
+				if r.Status == logger.StatusFailed && r.Command != "" {
+					fmt.Printf("  %s# %s%s\n", colorDim, r.Name, colorReset)
+					fmt.Printf("  %s\n", r.Command)
+				}
+			}
+			fmt.Printf("\n%sFull output: %s%s\n", colorDim, lg.LogPath(), colorReset)
+			fmt.Printf("%sTip: paste the failed commands + log output to an AI assistant for diagnosis%s\n", colorDim, colorReset)
 			return &ExitError{Code: ExitPartialFail, Message: fmt.Sprintf("%d tool(s) failed to install", failed)}
 		}
 		return nil

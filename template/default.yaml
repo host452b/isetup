@@ -165,29 +165,32 @@ profiles:
   01-lang-runtimes:
     tools:
       - name: nvm
+        # pinned: https://github.com/nvm-sh/nvm/releases
         depends_on: curl
         shell:
           unix: |
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
           windows: |
             irm https://github.com/coreybutler/nvm-windows/releases/download/1.1.12/nvm-setup.exe -OutFile nvm-setup.exe
 
       - name: node-lts
+        # pinned: https://nodejs.org/en/about/previous-releases
         depends_on: nvm
         shell:
-          unix: "source ~/.nvm/nvm.sh && nvm install --lts"
-          windows: "nvm install lts && nvm use lts"
+          unix: "source ~/.nvm/nvm.sh && nvm install 22.15.0 && nvm alias default 22.15.0"
+          windows: "nvm install 22.15.0 && nvm use 22.15.0"
 
       - name: typescript
         depends_on: node-lts
         npm: typescript
 
       - name: golang
+        # pinned: https://go.dev/dl/
         brew: go
         depends_on: curl
         shell:
           linux: |
-            GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1)
+            GO_VERSION="go1.24.2"
             TMPFILE=$(mktemp /tmp/go-XXXXXX.tar.gz)
             curl -fsSL "https://go.dev/dl/${GO_VERSION}.linux-{{.Arch}}.tar.gz" -o "$TMPFILE"
             sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf "$TMPFILE"
@@ -199,9 +202,11 @@ profiles:
         winget: GoLang.Go
 
       - name: rust
+        # pinned: rustup always installs latest stable; pin via rustup default
         depends_on: curl
         shell:
-          unix: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          unix: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.86.0
           windows: |
             irm https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
             .\rustup-init.exe -y

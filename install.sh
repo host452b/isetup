@@ -81,5 +81,14 @@ fi
 
 chmod +x "${INSTALL_DIR}/isetup"
 echo "Installed isetup ${VERSION} to ${INSTALL_DIR}/isetup"
-echo ""
-echo "Run: isetup install"
+
+# Auto-run install unless ISETUP_NO_AUTO_INSTALL is set
+if [ "${ISETUP_NO_AUTO_INSTALL:-}" = "1" ]; then
+  echo ""
+  echo "Run: isetup install"
+else
+  echo ""
+  echo "Starting isetup install..."
+  echo ""
+  "${INSTALL_DIR}/isetup" install
+fi
