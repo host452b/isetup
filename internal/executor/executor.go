@@ -63,7 +63,7 @@ func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo,
 
 		// Check depends_on
 		if entry.Tool.DependsOn != "" {
-			if entry.UnresolvedDep || failed[entry.Tool.DependsOn] {
+			if failed[entry.Tool.DependsOn] {
 				result.Status = logger.StatusSkipped
 				result.SkipReason = fmt.Sprintf("dependency failed: %s", entry.Tool.DependsOn)
 				failed[entry.Tool.Name] = true
@@ -71,6 +71,20 @@ func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo,
 				results = append(results, result)
 				notify(onProgress, i, total, entry, "done", "", "", &result)
 				continue
+			}
+			// Unresolved dep = not in selected profiles. Check if already on system.
+			if entry.UnresolvedDep {
+				depTool := config.Tool{Name: entry.Tool.DependsOn}
+				if !IsInstalled(depTool) {
+					result.Status = logger.StatusSkipped
+					result.SkipReason = fmt.Sprintf("dependency not available: %s (install profile containing it first)", entry.Tool.DependsOn)
+					failed[entry.Tool.Name] = true
+					_ = lg.WriteToolResult(result)
+					results = append(results, result)
+					notify(onProgress, i, total, entry, "done", "", "", &result)
+					continue
+				}
+				// dep is already installed on system — proceed
 			}
 		}
 
