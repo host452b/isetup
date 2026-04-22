@@ -85,7 +85,7 @@ func TestExecute_SkipsDependencyFailed(t *testing.T) {
 		Settings: config.Settings{DryRun: false, Force: true},
 		Profiles: map[string]config.Profile{
 			"dev": {Tools: []config.Tool{
-				{Name: "nvm"},             // no install method → skip
+				{Name: "nvm"}, // no install method → skip
 				{Name: "node", DependsOn: "nvm", Apt: "node"},
 			}},
 		},

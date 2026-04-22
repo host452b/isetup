@@ -12,8 +12,9 @@ import (
 // handles "already on system" detection for those).
 //
 // Returns:
-//   closure — all tools that must be considered, sorted by name.
-//   added   — tools added by dependency resolution (closure − selected), sorted.
+//
+//	closure — all tools that must be considered, sorted by name.
+//	added   — tools added by dependency resolution (closure − selected), sorted.
 func ResolveDeps(selected []string, all []config.Tool) (closure, added []string) {
 	byName := make(map[string]config.Tool, len(all))
 	for _, t := range all {

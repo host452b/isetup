@@ -21,21 +21,46 @@ const (
 	EventQuestion
 )
 
+// EscTimeoutMs is the number of milliseconds to wait after receiving a lone
+// ESC byte before treating it as a bare Escape keypress rather than the start
+// of an ANSI escape sequence.
+const EscTimeoutMs = 50
+
 // ParseKey inspects the prefix of buf and returns the event it represents
 // together with the number of bytes consumed. When the prefix is an unfinished
 // escape sequence, it returns (EventIncomplete, 0) and the caller must read
 // more bytes before calling again.
 func ParseKey(buf []byte) (Event, int) {
+	return parseKey(buf, false)
+}
+
+// ParseKeyForce is like ParseKey but treats incomplete escape sequences as
+// best-effort: a lone ESC byte becomes EventEsc, and an ESC+[ prefix that
+// never completed its CSI sequence becomes EventNone (consumed). This is used
+// by the Esc-timeout path to flush a pending ESC after 50 ms of silence.
+func ParseKeyForce(buf []byte) (Event, int) {
+	return parseKey(buf, true)
+}
+
+func parseKey(buf []byte, force bool) (Event, int) {
 	if len(buf) == 0 {
 		return EventNone, 0
 	}
 	switch buf[0] {
 	case 0x1b: // ESC
 		if len(buf) == 1 {
+			if force {
+				// Timeout path: lone ESC with no follow-up bytes → treat as Esc keypress.
+				return EventEsc, 1
+			}
 			return EventIncomplete, 0
 		}
 		if buf[1] == '[' {
 			if len(buf) < 3 {
+				if force {
+					// Timeout path: ESC+[ with no third byte → discard as unknown CSI.
+					return EventNone, 2
+				}
 				return EventIncomplete, 0
 			}
 			switch buf[2] {

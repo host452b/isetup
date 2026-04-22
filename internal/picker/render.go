@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode/utf8"
+
+	"github.com/host452b/isetup/internal/config"
+	"github.com/host452b/isetup/internal/executor"
 )
 
 const (
@@ -176,9 +180,12 @@ func renderHelpOverlay(width int) string {
 	return col(ansiDim, strings.Join(lines, "\n"))
 }
 
-// visualLen ignores ANSI escape sequences when measuring width.
+// visualLen ignores ANSI escape sequences when measuring display width.
+// It strips escape sequences byte-by-byte, then counts Unicode runes in the
+// remaining text so that multibyte glyphs (e.g. the "·" middle-dot in the
+// header) are counted as one column each.
 func visualLen(s string) int {
-	n := 0
+	var stripped strings.Builder
 	inEscape := false
 	for i := 0; i < len(s); i++ {
 		c := s[i]
@@ -192,9 +199,9 @@ func visualLen(s string) int {
 			inEscape = true
 			continue
 		}
-		n++
+		stripped.WriteByte(c)
 	}
-	return n
+	return utf8.RuneCountInString(stripped.String())
 }
 
 // renderConfirm produces the confirmation page. It calls ResolveDeps to
@@ -219,21 +226,32 @@ func renderConfirm(m *Model, width, height int) string {
 	b.WriteString(strings.Repeat("─", width))
 	b.WriteString("\n\n")
 
-	addedSet := make(map[string]bool, len(added))
-	for _, a := range added {
-		addedSet[a] = true
+	// Build a name→tool config map so we can call executor.IsInstalled per tool.
+	toolByName := make(map[string]*config.Tool, len(m.Nodes))
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool && n.Tool != nil {
+			toolByName[n.Name] = n.Tool
+		}
 	}
-	_ = addedSet
+
+	// renderLine formats a single tool line with optional "already installed" suffix.
+	renderLine := func(name string) string {
+		suffix := ""
+		if t := toolByName[name]; t != nil && executor.IsInstalled(*t) {
+			suffix = col(ansiDim, "   → already installed, will skip")
+		}
+		return fmt.Sprintf("    %-24s %s%s\n", name, col(ansiDim, methodByName[name]), suffix)
+	}
 
 	fmt.Fprintf(&b, "You selected %d tool(s):\n", len(selected))
 	for _, name := range selected {
-		fmt.Fprintf(&b, "    %-24s %s\n", name, col(ansiDim, methodByName[name]))
+		b.WriteString(renderLine(name))
 	}
 
 	if len(added) > 0 {
 		fmt.Fprintf(&b, "\nRequired dependencies (auto-added): %d tool(s)\n", len(added))
 		for _, name := range added {
-			fmt.Fprintf(&b, "    %-24s %s\n", name, col(ansiDim, methodByName[name]))
+			b.WriteString(renderLine(name))
 		}
 	}
 

@@ -178,3 +178,23 @@ func TestRenderConfirm_NoDepsSection(t *testing.T) {
 	assert.Contains(t, out, "git")
 	assert.NotContains(t, out, "Required dependencies", "no deps to add → omit section")
 }
+
+func TestRenderConfirm_AlreadyInstalledAnnotation(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	// "sh" is guaranteed to be in PATH on every Linux/macOS host and CI machine.
+	// executor.IsInstalled looks up PATH for unknown tool names, so naming a tool
+	// "sh" exercises the "already installed" annotation path reliably.
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"00-base": {Tools: []config.Tool{
+				{Name: "sh", Apt: "sh"},
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo())
+	m.Phase = PhaseConfirm
+	out := Render(m, 80, 24)
+
+	assert.Contains(t, out, "already installed, will skip",
+		"tool found in PATH should show the already-installed annotation")
+}

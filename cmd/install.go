@@ -105,21 +105,6 @@ var installCmd = &cobra.Command{
 		}
 		fmt.Println()
 
-		logPath, err := resolveLogDir()
-		if err != nil {
-			return err
-		}
-		lg, err := logger.New(logPath)
-		if err != nil {
-			return fmt.Errorf("setup logger: %w", err)
-		}
-
-		if err := lg.WriteEnvJSON(info, Version, path, cfg.Version); err != nil {
-			fmt.Fprintf(os.Stderr, "%sWARN: failed to write env.json: %v%s\n", colorYellow, err, colorReset)
-		}
-
-		fmt.Printf("%sLog: %s%s\n", colorDim, lg.LogPath(), colorReset)
-
 		var profiles []string
 		if profilesFlag != "" {
 			for _, p := range strings.Split(profilesFlag, ",") {
@@ -163,7 +148,16 @@ var installCmd = &cobra.Command{
 			dryRun:      dryRunFlag,
 			force:       forceFlag,
 		}
-		enterInteractive, err := decideInteractive(flagState, isTerminalStdin())
+		// noOtherFlags is true only when the user ran plain `isetup install` with
+		// no flags at all. Any explicitly-set flag (including --timeout, --config,
+		// --log-dir) opts out of auto-interactive mode.
+		noOtherFlags := !(cmd.Flags().Changed("profiles") ||
+			cmd.Flags().Changed("dry-run") ||
+			cmd.Flags().Changed("force") ||
+			cmd.Root().PersistentFlags().Changed("config") ||
+			cmd.Root().PersistentFlags().Changed("log-dir") ||
+			cmd.Root().PersistentFlags().Changed("timeout"))
+		enterInteractive, err := decideInteractive(flagState, isTerminalStdin(), noOtherFlags)
 		if err != nil {
 			return err
 		}
@@ -190,6 +184,23 @@ var installCmd = &cobra.Command{
 			}
 			toolFilter = sel.Tools
 		}
+
+		// Log setup happens AFTER the interactive path, so a cancel leaves no artifacts.
+		// Spec §3.5: N/Esc/Ctrl+C → exit 0, nothing installed, log directory not created.
+		logPath, err := resolveLogDir()
+		if err != nil {
+			return err
+		}
+		lg, err := logger.New(logPath)
+		if err != nil {
+			return fmt.Errorf("setup logger: %w", err)
+		}
+
+		if err := lg.WriteEnvJSON(info, Version, path, cfg.Version); err != nil {
+			fmt.Fprintf(os.Stderr, "%sWARN: failed to write env.json: %v%s\n", colorYellow, err, colorReset)
+		}
+
+		fmt.Printf("%sLog: %s%s\n", colorDim, lg.LogPath(), colorReset)
 
 		if cfg.Settings.DryRun {
 			fmt.Printf("%sDRY RUN — commands will be printed but not executed%s\n\n", colorCyan, colorReset)
@@ -310,17 +321,17 @@ type installFlags struct {
 
 // decideInteractive returns whether the install command should enter the
 // interactive picker and a non-nil error if the user passed -i without a TTY.
-// Auto-enter applies only when no other install flag is set; any of -p,
-// --dry-run, or -f opts out of auto mode.
-func decideInteractive(f installFlags, stdinIsTTY bool) (bool, error) {
+// Auto-enter applies only when noOtherFlags is true AND stdin is a TTY, meaning
+// the user ran plain `isetup install` with no flags. Any explicit flag (--timeout,
+// --config, --log-dir, -p, --dry-run, -f, etc.) opts out of auto mode.
+func decideInteractive(f installFlags, stdinIsTTY, noOtherFlags bool) (bool, error) {
 	if f.interactive {
 		if !stdinIsTTY {
 			return false, &ExitError{Code: ExitConfigError, Message: "interactive mode requires a TTY; remove -i or run in a terminal"}
 		}
 		return true, nil
 	}
-	auto := f.profiles == "" && !f.dryRun && !f.force && stdinIsTTY
-	return auto, nil
+	return noOtherFlags && stdinIsTTY, nil
 }
 
 func isTerminalStdin() bool {

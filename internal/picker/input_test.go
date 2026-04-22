@@ -92,3 +92,31 @@ func TestParseKey_UnknownByte(t *testing.T) {
 	assert.Equal(t, EventNone, ev)
 	assert.Equal(t, 1, n)
 }
+
+func TestParseKeyForce_LoneEscBecomesEsc(t *testing.T) {
+	// A lone 0x1b that ParseKey would mark as EventIncomplete must become
+	// EventEsc when force-parsed after the Esc-timeout fires.
+	ev, n := ParseKeyForce([]byte{0x1b})
+	assert.Equal(t, EventEsc, ev)
+	assert.Equal(t, 1, n)
+}
+
+func TestParseKeyForce_IncompleteCSIBecomesNone(t *testing.T) {
+	// ESC+[ with no third byte is discarded as an unknown CSI prefix.
+	ev, n := ParseKeyForce([]byte{0x1b, '['})
+	assert.Equal(t, EventNone, ev)
+	assert.Equal(t, 2, n)
+}
+
+func TestParseKeyForce_CompleteSequenceUnchanged(t *testing.T) {
+	// Force flag should not alter parsing of complete sequences.
+	ev, n := ParseKeyForce([]byte{0x1b, '[', 'A'})
+	assert.Equal(t, EventUp, ev)
+	assert.Equal(t, 3, n)
+}
+
+func TestParseKeyForce_NormalKeyUnchanged(t *testing.T) {
+	ev, n := ParseKeyForce([]byte{'q'})
+	assert.Equal(t, EventQ, ev)
+	assert.Equal(t, 1, n)
+}

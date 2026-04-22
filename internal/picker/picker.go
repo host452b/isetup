@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/host452b/isetup/internal/config"
 	"github.com/host452b/isetup/internal/detector"
@@ -76,6 +77,29 @@ func Run(cfg *config.Config, info *detector.SystemInfo) (*SelectionResult, error
 	pending := make([]byte, 0, 16)
 	drawScreen(m, width, height)
 
+	// escFlushCh is signalled by the Esc-timeout timer to force-parse a lone
+	// ESC byte that has been sitting in pending for EscTimeoutMs milliseconds.
+	escFlushCh := make(chan struct{}, 1)
+	var escTimer *time.Timer
+
+	// armEscTimer starts (or resets) the 50 ms timer used to flush a lone ESC.
+	armEscTimer := func() {
+		if escTimer != nil {
+			escTimer.Stop()
+		}
+		escTimer = time.AfterFunc(time.Duration(EscTimeoutMs)*time.Millisecond, func() {
+			select {
+			case escFlushCh <- struct{}{}:
+			default:
+			}
+		})
+	}
+	defer func() {
+		if escTimer != nil {
+			escTimer.Stop()
+		}
+	}()
+
 	for {
 		select {
 		case <-intCh:
@@ -87,11 +111,32 @@ func Run(cfg *config.Config, info *detector.SystemInfo) (*SelectionResult, error
 			drawScreen(m, width, height)
 		case err := <-errCh:
 			return nil, fmt.Errorf("read stdin: %w", err)
+		case <-escFlushCh:
+			// ESC timeout fired: force-parse whatever is in pending.
+			if len(pending) > 0 && pending[0] == 0x1b {
+				ev, consumed := ParseKeyForce(pending)
+				if consumed > 0 {
+					pending = pending[consumed:]
+				} else {
+					pending = pending[:0]
+				}
+				if ev != EventNone {
+					done, sel := handleEvent(m, ev)
+					if done {
+						return sel, nil
+					}
+					drawScreen(m, width, height)
+				}
+			}
 		case chunk := <-bytesCh:
 			pending = append(pending, chunk...)
 			for {
 				ev, consumed := ParseKey(pending)
 				if ev == EventIncomplete {
+					// If we have a lone ESC, arm the timeout to flush it soon.
+					if len(pending) == 1 && pending[0] == 0x1b {
+						armEscTimer()
+					}
 					break
 				}
 				if consumed == 0 {

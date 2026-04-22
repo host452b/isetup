@@ -36,12 +36,12 @@ const (
 // Node is one row in the tree: a profile header or a tool under a profile.
 type Node struct {
 	Kind      Kind
-	Name      string       // profile name or tool name
-	Method    string       // tool rows: the resolved install method, or "" if none on current system
-	Disabled  bool         // profile with when=false, or tool with no install method
-	ChildIdxs []int        // profile rows: indices into Model.Nodes
-	ParentIdx int          // tool rows: index of parent profile; profiles: -1
-	Expanded  bool         // profile rows only
+	Name      string // profile name or tool name
+	Method    string // tool rows: the resolved install method, or "" if none on current system
+	Disabled  bool   // profile with when=false, or tool with no install method
+	ChildIdxs []int  // profile rows: indices into Model.Nodes
+	ParentIdx int    // tool rows: index of parent profile; profiles: -1
+	Expanded  bool   // profile rows only
 	Check     CheckState
 	Tool      *config.Tool // backref for downstream dep computation
 }
@@ -49,7 +49,7 @@ type Node struct {
 // Model is the full state of the picker UI.
 type Model struct {
 	Nodes     []*Node
-	Cursor    int   // absolute index into Nodes; must always be a visible row
+	Cursor    int // absolute index into Nodes; must always be a visible row
 	HelpOpen  bool
 	Phase     Phase
 	StatusMsg string // transient one-line message shown in status area

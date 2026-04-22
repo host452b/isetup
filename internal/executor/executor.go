@@ -17,13 +17,13 @@ type ProgressCallback func(event ProgressEvent)
 
 // ProgressEvent describes what's happening during installation.
 type ProgressEvent struct {
-	Index   int    // 0-based tool index
-	Total   int    // total tool count
-	Name    string // tool name
-	Profile string // profile name
-	Phase   string // "start", "done"
-	Method  string // install method (available on "done")
-	Command string // resolved command (available on "start" for non-skip)
+	Index   int                // 0-based tool index
+	Total   int                // total tool count
+	Name    string             // tool name
+	Profile string             // profile name
+	Phase   string             // "start", "done"
+	Method  string             // install method (available on "done")
+	Command string             // resolved command (available on "start" for non-skip)
 	Result  *logger.ToolResult // available on "done"
 }
 

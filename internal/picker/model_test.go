@@ -180,10 +180,10 @@ func TestToggle_ToolUpdatesParentAggregate(t *testing.T) {
 	m := testModel()
 	m.Nodes[0].Expanded = true
 	m.Cursor = 1 // t1
-	m.Toggle()                            // t1 unchecked; t2 still checked
+	m.Toggle()   // t1 unchecked; t2 still checked
 	assert.Equal(t, Partial, m.Nodes[0].Check)
 	m.Cursor = 2 // t2
-	m.Toggle()                            // t2 unchecked; both unchecked
+	m.Toggle()   // t2 unchecked; both unchecked
 	assert.Equal(t, Unchecked, m.Nodes[0].Check)
 }
 
@@ -247,7 +247,7 @@ func TestToggle_ProfileIgnoresDisabledChildren(t *testing.T) {
 	}
 	m := New(cfg, linuxAptInfo())
 	m.Cursor = 0
-	m.Toggle() // currently: ok=Checked → Unchecked
+	m.Toggle()                                   // currently: ok=Checked → Unchecked
 	assert.Equal(t, Unchecked, m.Nodes[1].Check) // ok
 	assert.Equal(t, Unchecked, m.Nodes[2].Check) // only-brew stays unchecked and disabled
 	assert.True(t, m.Nodes[2].Disabled)
@@ -283,8 +283,8 @@ func TestCollapse_OnTool_JumpsToParent(t *testing.T) {
 	m.Nodes[0].Expanded = true
 	m.Cursor = 2 // t2
 	m.Collapse()
-	assert.Equal(t, 0, m.Cursor)               // cursor jumped to a-profile
-	assert.True(t, m.Nodes[0].Expanded)        // profile still expanded
+	assert.Equal(t, 0, m.Cursor)        // cursor jumped to a-profile
+	assert.True(t, m.Nodes[0].Expanded) // profile still expanded
 }
 
 func TestSelection_ReturnsOnlyCheckedEnabledTools(t *testing.T) {
