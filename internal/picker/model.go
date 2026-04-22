@@ -144,3 +144,50 @@ func profileAggregate(m *Model, p *Node) CheckState {
 		return Unchecked
 	}
 }
+
+// visibleIndices returns the list of node indices currently visible in the
+// picker (profile rows plus tool rows inside expanded profiles), in display
+// order.
+func (m *Model) visibleIndices() []int {
+	var out []int
+	for i, n := range m.Nodes {
+		if n.Kind == KindProfile {
+			out = append(out, i)
+			continue
+		}
+		if m.Nodes[n.ParentIdx].Expanded {
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// MoveDown advances the cursor to the next visible row, or stays if already
+// at the bottom. Has no effect when there are no rows.
+func (m *Model) MoveDown() {
+	m.StatusMsg = ""
+	vis := m.visibleIndices()
+	pos := indexOf(vis, m.Cursor)
+	if pos >= 0 && pos < len(vis)-1 {
+		m.Cursor = vis[pos+1]
+	}
+}
+
+// MoveUp retreats the cursor to the previous visible row, or stays at top.
+func (m *Model) MoveUp() {
+	m.StatusMsg = ""
+	vis := m.visibleIndices()
+	pos := indexOf(vis, m.Cursor)
+	if pos > 0 {
+		m.Cursor = vis[pos-1]
+	}
+}
+
+func indexOf(s []int, v int) int {
+	for i, x := range s {
+		if x == v {
+			return i
+		}
+	}
+	return -1
+}

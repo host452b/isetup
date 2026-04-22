@@ -102,3 +102,65 @@ func TestNew_CursorStartsAtFirstNode(t *testing.T) {
 	assert.Equal(t, 0, m.Cursor)
 	assert.Equal(t, KindProfile, m.Nodes[m.Cursor].Kind)
 }
+
+func testModel() *Model {
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"a-profile": {Tools: []config.Tool{
+				{Name: "t1", Apt: "t1"},
+				{Name: "t2", Apt: "t2"},
+			}},
+			"b-profile": {Tools: []config.Tool{
+				{Name: "t3", Apt: "t3"},
+			}},
+		},
+	}
+	return New(cfg, linuxAptInfo())
+}
+
+func TestVisibleIndices_AllCollapsed(t *testing.T) {
+	m := testModel()
+	vis := m.visibleIndices()
+	// 2 profile rows only, children hidden.
+	assert.Len(t, vis, 2)
+	assert.Equal(t, KindProfile, m.Nodes[vis[0]].Kind)
+	assert.Equal(t, KindProfile, m.Nodes[vis[1]].Kind)
+}
+
+func TestMoveDown_StopsAtBottom(t *testing.T) {
+	m := testModel()
+	m.Cursor = 0
+	m.MoveDown() // to b-profile
+	second := m.Cursor
+	m.MoveDown() // no-op at end
+	assert.Equal(t, second, m.Cursor)
+}
+
+func TestMoveUp_StopsAtTop(t *testing.T) {
+	m := testModel()
+	m.Cursor = 0
+	m.MoveUp()
+	assert.Equal(t, 0, m.Cursor)
+}
+
+func TestMoveDown_SkipsCollapsedChildren(t *testing.T) {
+	m := testModel()
+	m.Cursor = 0 // a-profile (collapsed)
+	m.MoveDown() // should jump over t1, t2 straight to b-profile
+	assert.Equal(t, KindProfile, m.Nodes[m.Cursor].Kind)
+	assert.Equal(t, "b-profile", m.Nodes[m.Cursor].Name)
+}
+
+func TestMoveDown_VisitsExpandedChildren(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true // expand a-profile
+	m.Cursor = 0
+	m.MoveDown()
+	assert.Equal(t, KindTool, m.Nodes[m.Cursor].Kind)
+	assert.Equal(t, "t1", m.Nodes[m.Cursor].Name)
+	m.MoveDown()
+	assert.Equal(t, "t2", m.Nodes[m.Cursor].Name)
+	m.MoveDown()
+	assert.Equal(t, KindProfile, m.Nodes[m.Cursor].Kind)
+	assert.Equal(t, "b-profile", m.Nodes[m.Cursor].Name)
+}
