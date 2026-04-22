@@ -27,7 +27,7 @@ All notable changes to isetup are documented here.
 - Removed PATH and HOME from env.json logs (potential info leak)
 - All `/tmp/` hardcoded paths replaced with `mktemp` (race condition fix)
 
-## [Unreleased]
+## [1.2.0] - 2026-04-22
 
 ### Added
 - **Interactive tool selection**: `isetup install -i` (or `isetup install` in a TTY with no other flags) opens a keyboard-driven picker with profile + tool two-level tree. Arrow keys navigate, Space toggles, Enter confirms. Dependencies are auto-added at the confirm step. CI and `curl | bash` flows are unchanged (non-TTY → current behavior).
