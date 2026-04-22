@@ -81,14 +81,9 @@ fi
 
 chmod +x "${INSTALL_DIR}/isetup"
 echo "Installed isetup ${VERSION} to ${INSTALL_DIR}/isetup"
-
-# Auto-run install unless ISETUP_NO_AUTO_INSTALL is set
-if [ "${ISETUP_NO_AUTO_INSTALL:-}" = "1" ]; then
-  echo ""
-  echo "Run: isetup install"
-else
-  echo ""
-  echo "Starting isetup install..."
-  echo ""
-  "${INSTALL_DIR}/isetup" install
-fi
+echo ""
+echo "Getting started:"
+echo "  isetup install        Pick tools interactively in a terminal, or install all in CI."
+echo "  isetup install -i     Force the interactive picker (arrow keys, Space, Enter)."
+echo "  isetup list           List profiles and tools without installing anything."
+echo "  isetup --help         Full command reference."

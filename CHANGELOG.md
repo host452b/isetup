@@ -27,6 +27,15 @@ All notable changes to isetup are documented here.
 - Removed PATH and HOME from env.json logs (potential info leak)
 - All `/tmp/` hardcoded paths replaced with `mktemp` (race condition fix)
 
+## [1.2.1] - 2026-04-22
+
+### Fixed
+- **Picker rendering** in raw mode was misaligned: each row started at the column where the previous row ended (staircase layout). `drawScreen` now rewrites `\n` → `\r\n` at the I/O boundary to compensate for OPOST being disabled under `term.MakeRaw`.
+
+### Changed
+- `install.sh` no longer auto-runs `isetup install` after downloading the binary. It prints a short getting-started hint instead, pointing users at `isetup install -i` and `isetup --help`. The `ISETUP_NO_AUTO_INSTALL` env var is removed (no longer needed).
+- `isetup install --help` and `isetup --help` now mention the `-i` flag and the TTY-auto-picker behavior explicitly.
+
 ## [1.2.0] - 2026-04-22
 
 ### Added

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/host452b/isetup/internal/config"
@@ -199,8 +200,13 @@ func handleEvent(m *Model, ev Event) (bool, *SelectionResult) {
 }
 
 // drawScreen clears the terminal and writes the current render.
+//
+// Raw mode disables OPOST, so a bare "\n" is a line-feed-only (no carriage
+// return): each row would begin at the column where the previous row ended,
+// producing a staircase layout. We rewrite newlines to CRLF at the I/O
+// boundary so Render() stays platform-agnostic and snapshot-testable with
+// plain "\n".
 func drawScreen(m *Model, width, height int) {
-	// Clear screen and move cursor to top-left.
 	os.Stdout.WriteString("\x1b[2J\x1b[H")
-	os.Stdout.WriteString(Render(m, width, height))
+	os.Stdout.WriteString(strings.ReplaceAll(Render(m, width, height), "\n", "\r\n"))
 }

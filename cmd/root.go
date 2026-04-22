@@ -25,9 +25,11 @@ only terminal-based tools — no GUI applications.
 
 Usage:
   isetup init                      Generate default config
-  isetup install                   Install all tools
-  isetup install -p base,ai-tools  Install specific profiles
+  isetup install                   Interactive picker in a TTY, install-all otherwise
+  isetup install -i                Force the interactive picker (arrow keys, Space, Enter)
+  isetup install -p base,ai-tools  Install specific profiles (no picker)
   isetup install --dry-run         Preview without executing
+  isetup list                      List profiles and tools without installing
   isetup detect                    Show system info`,
 }
 
