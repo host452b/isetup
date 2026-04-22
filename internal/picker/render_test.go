@@ -126,3 +126,55 @@ func TestRender_HelpOverlay(t *testing.T) {
 	assert.Contains(t, out, "↑/↓")
 	assert.Contains(t, out, "Space")
 }
+
+func TestRenderConfirm_ListsSelectedAndDeps(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"00-base": {Tools: []config.Tool{
+				{Name: "curl", Apt: "curl"},
+			}},
+			"04-ai": {Tools: []config.Tool{
+				{Name: "claude-code", DependsOn: "curl", Apt: "claude-code"},
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo())
+	// Uncheck curl so we can verify it comes back via dep resolution.
+	for _, n := range m.Nodes {
+		if n.Name == "curl" {
+			n.Check = Unchecked
+		}
+	}
+	for _, n := range m.Nodes {
+		if n.Kind == KindProfile {
+			n.Check = profileAggregate(m, n)
+		}
+	}
+	m.Phase = PhaseConfirm
+	out := Render(m, 80, 24)
+
+	assert.Contains(t, out, "claude-code")
+	assert.Contains(t, out, "curl")
+	assert.Contains(t, out, "Required dependencies")
+	assert.Contains(t, out, "[Y/Enter]")
+	assert.Contains(t, out, "[E]")
+	assert.Contains(t, out, "[N/Esc]")
+}
+
+func TestRenderConfirm_NoDepsSection(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"00-base": {Tools: []config.Tool{
+				{Name: "git", Apt: "git"},
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo())
+	m.Phase = PhaseConfirm
+	out := Render(m, 80, 24)
+
+	assert.Contains(t, out, "git")
+	assert.NotContains(t, out, "Required dependencies", "no deps to add → omit section")
+}

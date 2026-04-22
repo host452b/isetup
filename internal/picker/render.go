@@ -197,8 +197,54 @@ func visualLen(s string) int {
 	return n
 }
 
-// renderConfirm is a stub; implemented in Task 11.
-// TODO: implemented in Task 11
+// renderConfirm produces the confirmation page. It calls ResolveDeps to
+// compute the closure and renders the delta between user selection and
+// auto-added dependencies.
 func renderConfirm(m *Model, width, height int) string {
-	return ""
+	selected := m.Selection()
+	all := m.AllToolConfigs()
+	closure, added := ResolveDeps(selected, all)
+
+	// Build method lookup for enriching each line.
+	methodByName := make(map[string]string, len(m.Nodes))
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool {
+			methodByName[n.Name] = n.Method
+		}
+	}
+
+	var b strings.Builder
+	b.WriteString(col(ansiBold, "Review & Install"))
+	b.WriteString("\n")
+	b.WriteString(strings.Repeat("─", width))
+	b.WriteString("\n\n")
+
+	addedSet := make(map[string]bool, len(added))
+	for _, a := range added {
+		addedSet[a] = true
+	}
+	_ = addedSet
+
+	fmt.Fprintf(&b, "You selected %d tool(s):\n", len(selected))
+	for _, name := range selected {
+		fmt.Fprintf(&b, "    %-24s %s\n", name, col(ansiDim, methodByName[name]))
+	}
+
+	if len(added) > 0 {
+		fmt.Fprintf(&b, "\nRequired dependencies (auto-added): %d tool(s)\n", len(added))
+		for _, name := range added {
+			fmt.Fprintf(&b, "    %-24s %s\n", name, col(ansiDim, methodByName[name]))
+		}
+	}
+
+	fmt.Fprintf(&b, "\nTotal: %d tool(s) will be attempted\n", len(closure))
+	b.WriteString("\n")
+	b.WriteString(strings.Repeat("─", width))
+	b.WriteString("\n")
+	b.WriteString(col(ansiBold, "[Y/Enter] Install"))
+	b.WriteString("   ")
+	b.WriteString("[E] Edit selection")
+	b.WriteString("   ")
+	b.WriteString("[N/Esc] Cancel")
+	return b.String()
 }
