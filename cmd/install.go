@@ -202,7 +202,7 @@ var installCmd = &cobra.Command{
 		defer stop()
 		cfg.Settings.Timeout = timeoutFlag
 
-		results, err := executor.Execute(ctx, cfg, info, lg, profiles, onProgress)
+		results, err := executor.Execute(ctx, cfg, info, lg, profiles, nil, onProgress)
 		if err != nil {
 			return err
 		}

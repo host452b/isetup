@@ -28,13 +28,13 @@ type ProgressEvent struct {
 }
 
 // Execute runs the full install pipeline. Returns results and an error if topology is invalid.
-func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
+func Execute(ctx context.Context, cfg *config.Config, info *detector.SystemInfo, lg *logger.Logger, profiles []string, toolFilter []string, onProgress ProgressCallback) ([]logger.ToolResult, error) {
 	// Bootstrap: ensure minimal prerequisites exist (curl, wget, ca-certificates)
 	if !cfg.Settings.DryRun {
 		Bootstrap(ctx, info, lg)
 	}
 
-	entries := collectTools(cfg, info, profiles)
+	entries := collectTools(cfg, info, profiles, toolFilter)
 
 	sorted, err := TopoSort(entries)
 	if err != nil {
@@ -213,7 +213,7 @@ func notify(cb ProgressCallback, index, total int, entry ToolEntry, phase, metho
 	})
 }
 
-func collectTools(cfg *config.Config, info *detector.SystemInfo, profileFilter []string) []ToolEntry {
+func collectTools(cfg *config.Config, info *detector.SystemInfo, profileFilter, toolFilter []string) []ToolEntry {
 	selected := cfg.Profiles
 	if profileFilter != nil {
 		selected = make(map[string]config.Profile)
@@ -224,7 +224,14 @@ func collectTools(cfg *config.Config, info *detector.SystemInfo, profileFilter [
 		}
 	}
 
-	// Deterministic profile order
+	toolSet := map[string]bool(nil)
+	if toolFilter != nil {
+		toolSet = make(map[string]bool, len(toolFilter))
+		for _, n := range toolFilter {
+			toolSet[n] = true
+		}
+	}
+
 	names := make([]string, 0, len(selected))
 	for name := range selected {
 		names = append(names, name)
@@ -240,6 +247,9 @@ func collectTools(cfg *config.Config, info *detector.SystemInfo, profileFilter [
 		}
 
 		for _, tool := range prof.Tools {
+			if toolSet != nil && !toolSet[tool.Name] {
+				continue
+			}
 			entries = append(entries, ToolEntry{
 				Tool:       tool,
 				Profile:    profName,

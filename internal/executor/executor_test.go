@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/host452b/isetup/internal/config"
@@ -33,7 +34,7 @@ func TestExecute_DryRun(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(context.Background(), cfg, info, lg, nil, nil)
+	results, err := Execute(context.Background(), cfg, info, lg, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "git", results[0].Name)
@@ -54,7 +55,7 @@ func TestExecute_ProfileFilter(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(context.Background(), cfg, info, lg, []string{"base"}, nil)
+	results, err := Execute(context.Background(), cfg, info, lg, []string{"base"}, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, "git", results[0].Name)
@@ -72,7 +73,7 @@ func TestExecute_SkipsWhenConditionNotMet(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(context.Background(), cfg, info, lg, nil, nil)
+	results, err := Execute(context.Background(), cfg, info, lg, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
@@ -93,7 +94,7 @@ func TestExecute_SkipsDependencyFailed(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(context.Background(), cfg, info, lg, nil, nil)
+	results, err := Execute(context.Background(), cfg, info, lg, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
@@ -113,8 +114,32 @@ func TestExecute_NoMatchMethod(t *testing.T) {
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := Execute(context.Background(), cfg, info, lg, nil, nil)
+	results, err := Execute(context.Background(), cfg, info, lg, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
 	assert.Equal(t, logger.StatusSkipped, results[0].Status)
+}
+
+func TestExecute_ToolFilter(t *testing.T) {
+	cfg := &config.Config{
+		Version:  1,
+		Settings: config.Settings{DryRun: true, Force: true},
+		Profiles: map[string]config.Profile{
+			"base": {Tools: []config.Tool{
+				{Name: "git", Apt: "git"},
+				{Name: "curl", Apt: "curl"},
+				{Name: "wget", Apt: "wget"},
+			}},
+		},
+	}
+	info := testSystemInfo()
+	lg, err := logger.New(t.TempDir())
+	require.NoError(t, err)
+
+	results, err := Execute(context.Background(), cfg, info, lg, nil, []string{"git", "wget"}, nil)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	names := []string{results[0].Name, results[1].Name}
+	sort.Strings(names)
+	assert.Equal(t, []string{"git", "wget"}, names)
 }

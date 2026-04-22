@@ -41,7 +41,7 @@ profiles:
 	lg, err := logger.New(t.TempDir())
 	require.NoError(t, err)
 
-	results, err := executor.Execute(context.Background(), cfg, info, lg, nil, nil)
+	results, err := executor.Execute(context.Background(), cfg, info, lg, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, results)
 
