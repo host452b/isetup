@@ -27,19 +27,17 @@ All notable changes to isetup are documented here.
 - Removed PATH and HOME from env.json logs (potential info leak)
 - All `/tmp/` hardcoded paths replaced with `mktemp` (race condition fix)
 
-## [1.2.1] - 2026-04-22
+## [1.2.0] - 2026-04-22
 
-### Fixed
-- **Picker rendering** in raw mode was misaligned: each row started at the column where the previous row ended (staircase layout). `drawScreen` now rewrites `\n` → `\r\n` at the I/O boundary to compensate for OPOST being disabled under `term.MakeRaw`.
+### Added
+- **Interactive tool selection**: `isetup install -i` (or `isetup install` in a TTY with no other flags) opens a keyboard-driven picker with profile + tool two-level tree. Arrow keys navigate, Space toggles, Enter confirms. Dependencies are auto-added at the confirm step. CI flows are unchanged (non-TTY → install-all behavior).
 
 ### Changed
 - `install.sh` no longer auto-runs `isetup install` after downloading the binary. It prints a short getting-started hint instead, pointing users at `isetup install -i` and `isetup --help`. The `ISETUP_NO_AUTO_INSTALL` env var is removed (no longer needed).
 - `isetup install --help` and `isetup --help` now mention the `-i` flag and the TTY-auto-picker behavior explicitly.
 
-## [1.2.0] - 2026-04-22
-
-### Added
-- **Interactive tool selection**: `isetup install -i` (or `isetup install` in a TTY with no other flags) opens a keyboard-driven picker with profile + tool two-level tree. Arrow keys navigate, Space toggles, Enter confirms. Dependencies are auto-added at the confirm step. CI and `curl | bash` flows are unchanged (non-TTY → current behavior).
+### Fixed
+- **Picker rendering** in raw mode was misaligned: each row started at the column where the previous row ended (staircase layout). `drawScreen` now rewrites `\n` → `\r\n` at the I/O boundary to compensate for OPOST being disabled under `term.MakeRaw`.
 - Command execution timeout with `--timeout` flag (default 10m per tool)
 - Graceful Ctrl+C with interrupt summary
 - Profile name validation with typo suggestions
