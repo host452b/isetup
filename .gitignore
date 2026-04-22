@@ -1,5 +1,5 @@
-isetup
-isetup.exe
+/isetup
+/isetup.exe
 dist/
 *.env
 *.env.*
