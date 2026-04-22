@@ -254,3 +254,43 @@ func (m *Model) Collapse() {
 	}
 	m.Cursor = n.ParentIdx
 }
+
+// Selection returns the names of currently-checked, enabled tool rows, in
+// display order (grouped by profile, profile-sorted alphabetically).
+func (m *Model) Selection() []string {
+	var out []string
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool && n.Check == Checked && !n.Disabled {
+			out = append(out, n.Name)
+		}
+	}
+	return out
+}
+
+// AllToolConfigs returns every tool config in the model in a flat slice, for
+// passing to ResolveDeps.
+func (m *Model) AllToolConfigs() []config.Tool {
+	var out []config.Tool
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool && n.Tool != nil {
+			out = append(out, *n.Tool)
+		}
+	}
+	return out
+}
+
+// HasSelection reports whether at least one selectable tool is checked.
+func (m *Model) HasSelection() bool {
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool && n.Check == Checked && !n.Disabled {
+			return true
+		}
+	}
+	return false
+}
+
+// SelectionResult is returned by Run when the user confirms.
+type SelectionResult struct {
+	// Tools is the full dependency closure of the user's selection, sorted.
+	Tools []string
+}

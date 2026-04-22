@@ -286,3 +286,49 @@ func TestCollapse_OnTool_JumpsToParent(t *testing.T) {
 	assert.Equal(t, 0, m.Cursor)               // cursor jumped to a-profile
 	assert.True(t, m.Nodes[0].Expanded)        // profile still expanded
 }
+
+func TestSelection_ReturnsOnlyCheckedEnabledTools(t *testing.T) {
+	m := testModel()
+	// Default: t1 and t3 checked (different profiles). Uncheck t1 via toggle.
+	m.Nodes[1].Check = Unchecked
+	m.Nodes[0].Check = profileAggregate(m, m.Nodes[0])
+
+	sel := m.Selection()
+	assert.Equal(t, []string{"t2", "t3"}, sel)
+}
+
+func TestSelection_SkipsDisabled(t *testing.T) {
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"a": {Tools: []config.Tool{
+				{Name: "ok", Apt: "ok"},
+				{Name: "only-brew", Brew: "x"},
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo())
+	sel := m.Selection()
+	assert.Equal(t, []string{"ok"}, sel)
+}
+
+func TestAllToolConfigs_IncludesEveryTool(t *testing.T) {
+	m := testModel()
+	all := m.AllToolConfigs()
+	names := make([]string, len(all))
+	for i, t := range all {
+		names[i] = t.Name
+	}
+	assert.ElementsMatch(t, []string{"t1", "t2", "t3"}, names)
+}
+
+func TestHasSelection_TrueWhenAnyChecked(t *testing.T) {
+	m := testModel()
+	assert.True(t, m.HasSelection())
+	// Uncheck all.
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool {
+			n.Check = Unchecked
+		}
+	}
+	assert.False(t, m.HasSelection())
+}
