@@ -191,3 +191,44 @@ func indexOf(s []int, v int) int {
 	}
 	return -1
 }
+
+// Toggle flips the check state at the cursor. Tool rows flip between Checked
+// and Unchecked. Profile rows apply the "if any unselected → select all, else
+// unselect all" rule, ignoring disabled children. Disabled rows are no-ops.
+func (m *Model) Toggle() {
+	m.StatusMsg = ""
+	n := m.Nodes[m.Cursor]
+	if n.Disabled {
+		return
+	}
+	if n.Kind == KindTool {
+		if n.Check == Checked {
+			n.Check = Unchecked
+		} else {
+			n.Check = Checked
+		}
+		parent := m.Nodes[n.ParentIdx]
+		parent.Check = profileAggregate(m, parent)
+		return
+	}
+	// Profile: if any selectable child is unchecked → check all; else uncheck all.
+	target := Unchecked
+	for _, ci := range n.ChildIdxs {
+		c := m.Nodes[ci]
+		if c.Disabled {
+			continue
+		}
+		if c.Check != Checked {
+			target = Checked
+			break
+		}
+	}
+	for _, ci := range n.ChildIdxs {
+		c := m.Nodes[ci]
+		if c.Disabled {
+			continue
+		}
+		c.Check = target
+	}
+	n.Check = profileAggregate(m, n)
+}

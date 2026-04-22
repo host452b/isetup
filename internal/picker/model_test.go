@@ -164,3 +164,92 @@ func TestMoveDown_VisitsExpandedChildren(t *testing.T) {
 	assert.Equal(t, KindProfile, m.Nodes[m.Cursor].Kind)
 	assert.Equal(t, "b-profile", m.Nodes[m.Cursor].Name)
 }
+
+func TestToggle_ToolFlips(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true
+	m.Cursor = 1 // t1
+	assert.Equal(t, Checked, m.Nodes[1].Check)
+	m.Toggle()
+	assert.Equal(t, Unchecked, m.Nodes[1].Check)
+	m.Toggle()
+	assert.Equal(t, Checked, m.Nodes[1].Check)
+}
+
+func TestToggle_ToolUpdatesParentAggregate(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true
+	m.Cursor = 1 // t1
+	m.Toggle()                            // t1 unchecked; t2 still checked
+	assert.Equal(t, Partial, m.Nodes[0].Check)
+	m.Cursor = 2 // t2
+	m.Toggle()                            // t2 unchecked; both unchecked
+	assert.Equal(t, Unchecked, m.Nodes[0].Check)
+}
+
+func TestToggle_ProfileFullChecksAll(t *testing.T) {
+	m := testModel()
+	// Start: both children checked. Toggle profile → all unchecked.
+	m.Cursor = 0
+	m.Toggle()
+	assert.Equal(t, Unchecked, m.Nodes[1].Check)
+	assert.Equal(t, Unchecked, m.Nodes[2].Check)
+	assert.Equal(t, Unchecked, m.Nodes[0].Check)
+}
+
+func TestToggle_ProfileEmptyChecksAll(t *testing.T) {
+	m := testModel()
+	// First, uncheck everything manually.
+	m.Nodes[1].Check = Unchecked
+	m.Nodes[2].Check = Unchecked
+	m.Nodes[0].Check = profileAggregate(m, m.Nodes[0])
+	m.Cursor = 0
+	m.Toggle()
+	assert.Equal(t, Checked, m.Nodes[1].Check)
+	assert.Equal(t, Checked, m.Nodes[2].Check)
+	assert.Equal(t, Checked, m.Nodes[0].Check)
+}
+
+func TestToggle_ProfilePartialBecomesAllChecked(t *testing.T) {
+	m := testModel()
+	m.Nodes[1].Check = Unchecked
+	m.Nodes[0].Check = profileAggregate(m, m.Nodes[0]) // Partial
+	m.Cursor = 0
+	m.Toggle()
+	assert.Equal(t, Checked, m.Nodes[1].Check)
+	assert.Equal(t, Checked, m.Nodes[2].Check)
+	assert.Equal(t, Checked, m.Nodes[0].Check)
+}
+
+func TestToggle_DisabledRowNoop(t *testing.T) {
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"07-gpu": {When: "has_gpu", Tools: []config.Tool{
+				{Name: "cuda", Apt: "cuda"},
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo()) // no GPU → profile disabled
+	m.Cursor = 0
+	before := *m.Nodes[0]
+	m.Toggle()
+	assert.Equal(t, before, *m.Nodes[0], "toggle on disabled profile should be a no-op")
+}
+
+func TestToggle_ProfileIgnoresDisabledChildren(t *testing.T) {
+	cfg := &config.Config{
+		Profiles: map[string]config.Profile{
+			"a": {Tools: []config.Tool{
+				{Name: "ok", Apt: "ok"},
+				{Name: "only-brew", Brew: "x"}, // disabled on linux-apt
+			}},
+		},
+	}
+	m := New(cfg, linuxAptInfo())
+	m.Cursor = 0
+	m.Toggle() // currently: ok=Checked → Unchecked
+	assert.Equal(t, Unchecked, m.Nodes[1].Check) // ok
+	assert.Equal(t, Unchecked, m.Nodes[2].Check) // only-brew stays unchecked and disabled
+	assert.True(t, m.Nodes[2].Disabled)
+	assert.Equal(t, Unchecked, m.Nodes[0].Check)
+}
