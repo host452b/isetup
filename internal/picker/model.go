@@ -232,3 +232,25 @@ func (m *Model) Toggle() {
 	}
 	n.Check = profileAggregate(m, n)
 }
+
+// Expand opens the profile at the cursor. No effect on tool rows.
+func (m *Model) Expand() {
+	m.StatusMsg = ""
+	n := m.Nodes[m.Cursor]
+	if n.Kind == KindProfile {
+		n.Expanded = true
+	}
+}
+
+// Collapse folds the profile at the cursor. If the cursor is on a tool row,
+// it jumps to the parent profile without collapsing (the user may press
+// collapse again to fold).
+func (m *Model) Collapse() {
+	m.StatusMsg = ""
+	n := m.Nodes[m.Cursor]
+	if n.Kind == KindProfile {
+		n.Expanded = false
+		return
+	}
+	m.Cursor = n.ParentIdx
+}

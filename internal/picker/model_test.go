@@ -253,3 +253,36 @@ func TestToggle_ProfileIgnoresDisabledChildren(t *testing.T) {
 	assert.True(t, m.Nodes[2].Disabled)
 	assert.Equal(t, Unchecked, m.Nodes[0].Check)
 }
+
+func TestExpand_OnProfile(t *testing.T) {
+	m := testModel()
+	m.Cursor = 0
+	m.Expand()
+	assert.True(t, m.Nodes[0].Expanded)
+}
+
+func TestCollapse_OnProfile(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true
+	m.Cursor = 0
+	m.Collapse()
+	assert.False(t, m.Nodes[0].Expanded)
+}
+
+func TestExpand_OnTool_NoOp(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true
+	m.Cursor = 1 // t1
+	m.Expand()
+	assert.True(t, m.Nodes[0].Expanded) // profile unchanged
+	assert.Equal(t, 1, m.Cursor)
+}
+
+func TestCollapse_OnTool_JumpsToParent(t *testing.T) {
+	m := testModel()
+	m.Nodes[0].Expanded = true
+	m.Cursor = 2 // t2
+	m.Collapse()
+	assert.Equal(t, 0, m.Cursor)               // cursor jumped to a-profile
+	assert.True(t, m.Nodes[0].Expanded)        // profile still expanded
+}
