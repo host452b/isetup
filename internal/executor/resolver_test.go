@@ -42,7 +42,7 @@ func TestResolve_WindowsWingetFallback(t *testing.T) {
 
 func TestResolve_ShellExactOS(t *testing.T) {
 	tool := config.Tool{
-		Name: "miniconda",
+		Name:  "miniconda",
 		Shell: config.Shell{Linux: "linux-specific", Darwin: "darwin-specific", Unix: "unix-fallback"},
 	}
 	info := &detector.SystemInfo{OS: "linux"}

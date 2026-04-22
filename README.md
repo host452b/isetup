@@ -87,6 +87,49 @@ isetup install
 isetup install -p 00-base,04-ai-tools
 ```
 
+## Interactive Mode
+
+Run `isetup install -i` (or just `isetup install` in a TTY with no other flags)
+to pick tools with arrow keys.
+
+```
+isetup install · interactive mode                    linux/amd64 · apt,pip,npm
+
+[x] ▼ 00-base                                           14/14 selected
+      [x] curl                  apt
+      [x] git                   apt
+      [ ] neovim                apt
+[x] ▶ 01-lang-runtimes                                   7/ 7 selected
+[ ] ▶ 04-ai-tools                                        0/ 7 selected
+[·] ✗ 07-gpu                    no GPU detected          0/ 2 (disabled)
+
+─────────────────────────────────────────────────────────────────────────────
+↑/↓ move · Space toggle · →/← expand/collapse · Enter confirm · q quit · ? help
+```
+
+Keys:
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` / `k` / `j` | Move cursor |
+| `→` / `l` | Expand profile |
+| `←` / `h` | Collapse profile; from a tool row, jump to parent profile |
+| `Space` | Toggle selection (on a profile: all selectable children at once) |
+| `Enter` | Go to confirmation page |
+| `Y` / `Enter` on confirm | Start install |
+| `E` on confirm | Return to picker, preserving selection |
+| `q` / `Esc` / `Ctrl+C` | Exit without installing |
+| `?` | Toggle help overlay |
+
+Defaults on open:
+- Profiles whose `when:` condition is satisfied on the current system → selected, collapsed.
+- Profiles whose `when:` is unmet (e.g., `has_gpu` on a laptop) → disabled (cannot be toggled).
+- Tools with no install method on the current system → unchecked, shown with `⚠ no method`.
+
+Dependencies are resolved at confirm time: selecting `claude-code` automatically pulls in `node-lts`, `nvm`, and `curl` — they appear on the confirm page under "Required dependencies".
+
+The interactive flow opts **out** when stdin isn't a TTY (CI, `curl | bash`) or when any install flag is passed (`-p`, `-f`, `--dry-run`). To force interactive inside a TTY even with those flags, pass `-i` explicitly.
+
 ## Default Tools
 
 The built-in template installs **62 tools** across 8 profiles:

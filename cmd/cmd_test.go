@@ -65,3 +65,92 @@ func TestInitCmd_AlreadyExists(t *testing.T) {
 	assert.NotNil(t, initCmd)
 	assert.Equal(t, "init", initCmd.Use)
 }
+
+func TestDecideInteractive(t *testing.T) {
+	cases := []struct {
+		name         string
+		f            installFlags
+		tty          bool
+		noOtherFlags bool
+		wantEnter    bool
+		wantErr      bool
+	}{
+		{
+			name:         "explicit -i with TTY",
+			f:            installFlags{interactive: true},
+			tty:          true,
+			noOtherFlags: false, // -i itself is a flag, but explicit path bypasses noOtherFlags
+			wantEnter:    true,
+		},
+		{
+			name:         "explicit -i without TTY",
+			f:            installFlags{interactive: true},
+			tty:          false,
+			noOtherFlags: false,
+			wantErr:      true,
+		},
+		{
+			name:         "no flags + TTY → auto-enter",
+			tty:          true,
+			noOtherFlags: true,
+			wantEnter:    true,
+		},
+		{
+			name:         "no flags + no TTY → no",
+			tty:          false,
+			noOtherFlags: true,
+			wantEnter:    false,
+		},
+		{
+			name:         "-p opts out of auto",
+			f:            installFlags{profiles: "00-base"},
+			tty:          true,
+			noOtherFlags: false,
+			wantEnter:    false,
+		},
+		{
+			name:         "--dry-run opts out of auto",
+			f:            installFlags{dryRun: true},
+			tty:          true,
+			noOtherFlags: false,
+			wantEnter:    false,
+		},
+		{
+			name:         "-f opts out of auto",
+			f:            installFlags{force: true},
+			tty:          true,
+			noOtherFlags: false,
+			wantEnter:    false,
+		},
+		{
+			name:         "-i + -p is allowed",
+			f:            installFlags{interactive: true, profiles: "00-base"},
+			tty:          true,
+			noOtherFlags: false, // -p was set, but -i overrides
+			wantEnter:    true,
+		},
+		{
+			name:         "--timeout opts out of auto",
+			tty:          true,
+			noOtherFlags: false, // --timeout was explicitly set
+			wantEnter:    false,
+		},
+		{
+			name:         "--config opts out of auto",
+			tty:          true,
+			noOtherFlags: false, // --config was explicitly set
+			wantEnter:    false,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			enter, err := decideInteractive(tc.f, tc.tty, tc.noOtherFlags)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.wantEnter, enter)
+		})
+	}
+}
