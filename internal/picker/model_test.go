@@ -332,3 +332,66 @@ func TestHasSelection_TrueWhenAnyChecked(t *testing.T) {
 	}
 	assert.False(t, m.HasSelection())
 }
+
+func TestHandleEvent_EnterWithSelectionMovesToConfirm(t *testing.T) {
+	m := testModel()
+	done, sel := handleEvent(m, EventEnter)
+	assert.False(t, done)
+	assert.Nil(t, sel)
+	assert.Equal(t, PhaseConfirm, m.Phase)
+}
+
+func TestHandleEvent_EnterWithoutSelectionSetsStatus(t *testing.T) {
+	m := testModel()
+	for _, n := range m.Nodes {
+		if n.Kind == KindTool {
+			n.Check = Unchecked
+		}
+	}
+	done, _ := handleEvent(m, EventEnter)
+	assert.False(t, done)
+	assert.Equal(t, PhasePick, m.Phase)
+	assert.Contains(t, m.StatusMsg, "Nothing selected")
+}
+
+func TestHandleEvent_ConfirmYReturnsSelection(t *testing.T) {
+	m := testModel()
+	m.Phase = PhaseConfirm
+	done, sel := handleEvent(m, EventY)
+	assert.True(t, done)
+	require.NotNil(t, sel)
+	assert.ElementsMatch(t, []string{"t1", "t2", "t3"}, sel.Tools)
+}
+
+func TestHandleEvent_ConfirmEditGoesBack(t *testing.T) {
+	m := testModel()
+	m.Phase = PhaseConfirm
+	done, sel := handleEvent(m, EventE)
+	assert.False(t, done)
+	assert.Nil(t, sel)
+	assert.Equal(t, PhasePick, m.Phase)
+}
+
+func TestHandleEvent_ConfirmCancelExits(t *testing.T) {
+	m := testModel()
+	m.Phase = PhaseConfirm
+	done, sel := handleEvent(m, EventN)
+	assert.True(t, done)
+	assert.Nil(t, sel)
+}
+
+func TestHandleEvent_EscInPickExits(t *testing.T) {
+	m := testModel()
+	done, sel := handleEvent(m, EventEsc)
+	assert.True(t, done)
+	assert.Nil(t, sel)
+}
+
+func TestHandleEvent_QuestionTogglesHelp(t *testing.T) {
+	m := testModel()
+	assert.False(t, m.HelpOpen)
+	handleEvent(m, EventQuestion)
+	assert.True(t, m.HelpOpen)
+	handleEvent(m, EventQuestion)
+	assert.False(t, m.HelpOpen)
+}
