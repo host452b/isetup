@@ -1,5 +1,7 @@
 # isetup
 
+> 最近同步：**2026-04-23** · 62 个工具 · 8 个 profile · Go 1.22+ · 同步发布到 [PyPI](https://pypi.org/project/isetup/)
+
 [English](README.md)
 
 跨平台 CLI 工具，自动检测操作系统、硬件架构，然后自适应调用正确的安装命令，一键部署你的开发环境。
@@ -21,6 +23,7 @@
 - **跳过已安装** — 自动检测 PATH 中已有的工具并跳过，`-f` 强制重装
 - **丰富诊断** — 完整的命令输出、环境快照、耗时记录，存储在 `~/.isetup/logs/`
 - **实时进度** — `[N/Total]` 计数器 + 系统信息头，不会静默等待
+- **交互式选择** — 方向键 + 空格挑工具（在 TTY 里 `isetup install` 自动进入，或用 `-i` 强制）
 - **试运行模式** — 预览所有命令，不实际执行
 
 ## 安装
@@ -86,10 +89,13 @@ vim ~/.isetup.yaml
 # 预览将要安装的内容
 isetup install --dry-run
 
-# 安装所有工具
+# 安装（在 TTY 里自动进入交互选择；非 TTY 则装全部）
 isetup install
 
-# 仅安装指定 profile
+# 强制进入交互选择（即使带了其他 flag）
+isetup install -i
+
+# 仅安装指定 profile（非交互）
 isetup install -p base,ai-tools
 ```
 
@@ -264,11 +270,12 @@ isetup install · interactive mode                    linux/amd64 · apt,pip,npm
 isetup init                      生成默认 ~/.isetup.yaml
 isetup init --force              覆盖已有配置
 isetup detect                    输出系统检测信息（JSON）
-isetup install                   安装所有 profile
-isetup install -p base,ai-tools  安装指定 profile
+isetup install                   TTY 里进交互选择，否则装全部
+isetup install -i                强制进入交互选择（方向键 + 空格 + 回车）
+isetup install -p base,ai-tools  仅安装指定 profile（非交互）
 isetup install -f                强制重装已安装的工具
 isetup install --dry-run         仅预览命令，不执行
-isetup install --timeout 5m     设置单工具超时（默认 10 分钟）
+isetup install --timeout 5m      设置单工具超时（默认 10 分钟）
 isetup list                      列出所有 profile 和工具
 isetup version                   打印版本号
 ```

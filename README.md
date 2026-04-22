@@ -1,6 +1,6 @@
 # isetup
 
-> Last synced with code: **2026-04-10** · 62 tools · 8 profiles · Go 1.22+
+> Last synced with code: **2026-04-23** · 62 tools · 8 profiles · Go 1.22+ · also on [PyPI](https://pypi.org/project/isetup/)
 
 [中文文档](README_zh.md)
 
@@ -23,6 +23,7 @@ New machine? `isetup install`. Done.
 - **Skip installed** — auto-detects tools already in PATH, skips them (use `-f` to force reinstall)
 - **Rich diagnostics** — full command output, environment snapshot, and timing in `~/.isetup/logs/`
 - **Real-time progress** — `[N/Total]` counter with system info header, no silent waiting
+- **Interactive picker** — arrow keys + Space to select specific tools (auto-opens on `isetup install` in a TTY, or force with `-i`)
 - **Dry-run mode** — preview all commands without executing
 
 ## Install
@@ -88,10 +89,13 @@ vim ~/.isetup.yaml
 # Preview what will be installed
 isetup install --dry-run
 
-# Install everything
+# Install (interactive picker in a TTY, install-all otherwise)
 isetup install
 
-# Install specific profiles only
+# Force the interactive picker even with other flags
+isetup install -i
+
+# Install specific profiles only (non-interactive)
 isetup install -p 00-base,04-ai-tools
 ```
 
@@ -272,11 +276,12 @@ The built-in template installs **62 tools** across 8 profiles:
 isetup init                      Generate default ~/.isetup.yaml
 isetup init --force              Overwrite existing config
 isetup detect                    Print detected system info as JSON
-isetup install                   Install all profiles
-isetup install -p 00-base,04-ai-tools  Install specific profiles
+isetup install                   Interactive picker in a TTY, install-all otherwise
+isetup install -i                Force the interactive picker (arrow keys, Space, Enter)
+isetup install -p 00-base,04-ai-tools  Install specific profiles (non-interactive)
 isetup install -f                Reinstall even if already installed
 isetup install --dry-run         Preview commands without executing
-isetup install --timeout 5m     Set per-tool timeout (default 10m)
+isetup install --timeout 5m      Set per-tool timeout (default 10m)
 isetup list                      List all profiles and tools
 isetup version                   Print version
 ```
