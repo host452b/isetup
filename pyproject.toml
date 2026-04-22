@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "isetup"
-version = "1.2.0"
+version = "1.2.1"
 description = "Cross-platform CLI tool for one-click dev environment setup."
 readme = "README.md"
 requires-python = ">=3.8"

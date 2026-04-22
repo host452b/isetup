@@ -27,10 +27,13 @@ All notable changes to isetup are documented here.
 - Removed PATH and HOME from env.json logs (potential info leak)
 - All `/tmp/` hardcoded paths replaced with `mktemp` (race condition fix)
 
-## [Unreleased]
+## [1.2.1] - 2026-04-22
 
 ### Added
 - **PyPI packaging**: `pip install isetup` now works. Each platform wheel bundles the matching pre-built Go binary; the Python shim under `python/isetup/__main__.py` hands off to it via `os.execv` (Unix) or `subprocess` (Windows). `scripts/build_wheels.sh` cross-compiles for all 6 GOOS/GOARCH combinations and emits correctly tagged wheels; `.github/workflows/pypi.yml` publishes on tag push (or manually to TestPyPI via `workflow_dispatch`).
+
+### Fixed
+- `.gitignore`: anchor the `isetup` pattern to the repo root (`/isetup`) so it only matches the locally-built Go binary, not the `python/isetup/` package directory. The previous unanchored pattern silently excluded the Python shim from git tracking.
 
 ## [1.2.0] - 2026-04-22
 
