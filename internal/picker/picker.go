@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/host452b/isetup/internal/config"
@@ -38,11 +37,11 @@ func Run(cfg *config.Config, info *detector.SystemInfo) (*SelectionResult, error
 	defer term.Restore(fd, oldState)
 
 	resizeCh := make(chan os.Signal, 1)
-	signal.Notify(resizeCh, syscall.SIGWINCH)
+	notifyResize(resizeCh)
 	defer signal.Stop(resizeCh)
 
 	intCh := make(chan os.Signal, 1)
-	signal.Notify(intCh, os.Interrupt, syscall.SIGTERM)
+	notifyInterrupt(intCh)
 	defer signal.Stop(intCh)
 
 	bytesCh := make(chan []byte, 8)
