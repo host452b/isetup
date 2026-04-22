@@ -27,6 +27,14 @@ New machine? `isetup install`. Done.
 
 ## Install
 
+**Via pip (cross-platform, no Go toolchain required):**
+
+```bash
+pip install isetup
+```
+
+The wheel bundles a matching pre-built binary; `pip` picks the right one for your OS/arch. Works inside a virtualenv or pipx.
+
 **Easiest (if Go is installed):**
 
 ```bash

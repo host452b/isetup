@@ -1,0 +1,84 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Where to publish"
+        required: true
+        default: "testpypi"
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python build tooling
+        run: python -m pip install --upgrade build wheel setuptools twine
+
+      - name: Derive version from tag
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            ver="${GITHUB_REF_NAME#v}"
+          else
+            ver="$(grep -E '^version = ' pyproject.toml | head -1 | sed -E 's/version = "(.*)"/\1/')"
+          fi
+          echo "version=${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync version into pyproject.toml and __init__.py
+        run: |
+          v="${{ steps.ver.outputs.version }}"
+          sed -i "s/^version = \".*\"$/version = \"${v}\"/" pyproject.toml
+          sed -i "s/^__version__ = \".*\"$/__version__ = \"${v}\"/" python/isetup/__init__.py
+          echo "pyproject.toml version line:"
+          grep "^version = " pyproject.toml
+          echo "__init__.py version line:"
+          grep "^__version__" python/isetup/__init__.py
+
+      - name: Build wheels for all platforms
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          ./scripts/build_wheels.sh
+          ls -la dist-wheels/
+
+      - name: Validate wheels
+        run: |
+          python -m twine check dist-wheels/*
+
+      - name: Publish to TestPyPI
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
+          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+        run: python -m twine upload --non-interactive dist-wheels/*
+
+      - name: Publish to PyPI
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload --non-interactive dist-wheels/*

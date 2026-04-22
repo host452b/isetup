@@ -10,3 +10,11 @@ dist/
 isetup-logs/
 vendor/
 .worktrees/
+
+# Python wheel build artifacts
+build/
+dist-wheels/
+*.egg-info/
+python/isetup/bin/
+__pycache__/
+*.pyc

@@ -25,6 +25,14 @@
 
 ## 安装
 
+**通过 pip 安装（跨平台，无需 Go 工具链）：**
+
+```bash
+pip install isetup
+```
+
+wheel 里打包了当前平台的预编译二进制，`pip` 会根据 OS/arch 自动选对应版本。支持 virtualenv 和 pipx。
+
 **Linux / macOS（推荐）：**
 
 ```bash

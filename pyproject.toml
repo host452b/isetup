@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isetup"
+version = "1.2.0"
+description = "Cross-platform CLI tool for one-click dev environment setup."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "host452b" }]
+keywords = ["cli", "developer-tools", "setup", "installer"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development",
+  "Topic :: System :: Installation/Setup",
+  "Topic :: Utilities",
+]
+
+[project.scripts]
+isetup = "isetup.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/host452b/isetup"
+Documentation = "https://github.com/host452b/isetup#readme"
+Repository = "https://github.com/host452b/isetup"
+Changelog = "https://github.com/host452b/isetup/blob/main/CHANGELOG.md"
+Issues = "https://github.com/host452b/isetup/issues"
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["isetup*"]
+
+[tool.setuptools.package-data]
+isetup = ["bin/*"]
