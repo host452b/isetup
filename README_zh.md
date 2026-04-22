@@ -85,6 +85,48 @@ isetup install
 isetup install -p base,ai-tools
 ```
 
+## 交互模式
+
+运行 `isetup install -i`（或在 TTY 里直接 `isetup install` 不带其他 flag）用方向键挑选工具。
+
+```
+isetup install · interactive mode                    linux/amd64 · apt,pip,npm
+
+[x] ▼ 00-base                                           14/14 selected
+      [x] curl                  apt
+      [x] git                   apt
+      [ ] neovim                apt
+[x] ▶ 01-lang-runtimes                                   7/ 7 selected
+[ ] ▶ 04-ai-tools                                        0/ 7 selected
+[·] ✗ 07-gpu                    no GPU detected          0/ 2 (disabled)
+
+─────────────────────────────────────────────────────────────────────────────
+↑/↓ move · Space toggle · →/← expand/collapse · Enter confirm · q quit · ? help
+```
+
+键位：
+
+| 键 | 行为 |
+|----|------|
+| `↑` / `↓` / `k` / `j` | 移动光标 |
+| `→` / `l` | 展开 profile |
+| `←` / `h` | 折叠 profile；在工具行上：跳到父 profile |
+| `Space` | 切换勾选（profile 行：同时切换所有可选子项） |
+| `Enter` | 进入确认页 |
+| 确认页 `Y` / `Enter` | 开始安装 |
+| 确认页 `E` | 回到挑选界面，保留勾选状态 |
+| `q` / `Esc` / `Ctrl+C` | 退出，不安装 |
+| `?` | 切换帮助浮层 |
+
+默认状态：
+- `when:` 条件满足当前系统的 profile → 勾选、折叠
+- `when:` 条件未满足的 profile（如笔记本上的 `has_gpu`）→ 禁用（无法切换）
+- 当前系统无安装方法的工具 → 不勾选，右侧显示 `⚠ no method`
+
+依赖在确认页统一解析：勾选 `claude-code` 会自动补上 `node-lts`、`nvm`、`curl` —— 它们会在确认页的 "Required dependencies" 区域单独列出。
+
+交互模式在以下情况**不会启用**：stdin 不是 TTY（CI、`curl | bash`）、或者传了任意其他 install flag（`-p`、`-f`、`--dry-run`）。如果你在 TTY 里同时需要这些 flag 和交互，显式传 `-i`。
+
 ## 默认工具
 
 内置模板安装 **62 个工具**，分布在 8 个 profile 中：

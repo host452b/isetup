@@ -117,7 +117,7 @@ Bootstrap uses `apt` first, falls back to `apt-get`.
 
 ## What NOT to Add
 
-- GUI / TUI installer — isetup is CLI-only
+- GUI / TUI installer as a **replacement** for the CLI — isetup stays CLI-first. An opt-in interactive picker layered on top of `isetup install` is allowed (see `isetup install -i`); the non-interactive flows (`-p`, `--dry-run`, `curl | bash`) must remain byte-for-byte identical.
 - Daemon / service mode — run once, done
 - Plugin system — edit default.yaml directly
 - Docker/container build integration — isetup runs inside containers, not builds them

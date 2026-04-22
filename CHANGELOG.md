@@ -30,6 +30,7 @@ All notable changes to isetup are documented here.
 ## [Unreleased]
 
 ### Added
+- **Interactive tool selection**: `isetup install -i` (or `isetup install` in a TTY with no other flags) opens a keyboard-driven picker with profile + tool two-level tree. Arrow keys navigate, Space toggles, Enter confirms. Dependencies are auto-added at the confirm step. CI and `curl | bash` flows are unchanged (non-TTY → current behavior).
 - Command execution timeout with `--timeout` flag (default 10m per tool)
 - Graceful Ctrl+C with interrupt summary
 - Profile name validation with typo suggestions
