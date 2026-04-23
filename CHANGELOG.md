@@ -27,6 +27,14 @@ All notable changes to isetup are documented here.
 - Removed PATH and HOME from env.json logs (potential info leak)
 - All `/tmp/` hardcoded paths replaced with `mktemp` (race condition fix)
 
+## [1.2.2] - 2026-04-23
+
+### Changed
+- README.md / README_zh.md synced to the v1.2.1 feature surface: PyPI listing linked from the header, "Interactive picker" added to the Features list, `isetup install -i` called out in Quick Start and the Commands reference.
+- `.github/workflows/pypi.yml` now passes `--skip-existing` to `twine upload` so re-running the workflow against an already-published version is a no-op instead of a hard failure.
+
+_No source-code changes since v1.2.1. The Go binary is byte-identical except for the version string baked in via `-ldflags`._
+
 ## [1.2.1] - 2026-04-22
 
 ### Added
