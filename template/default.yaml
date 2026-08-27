@@ -392,6 +392,12 @@ profiles:
         shell:
           unix: "curl -fsS https://cursor.com/install | bash"
 
+      - name: herdr
+        depends_on: curl
+        shell:
+          unix: "curl -fsSL https://herdr.dev/install.sh | sh"
+          windows: 'powershell -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex"'
+
       - name: yoyo
         depends_on: curl
         shell:

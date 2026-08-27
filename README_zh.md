@@ -1,6 +1,6 @@
 # isetup
 
-> 最近同步：**2026-04-23** · 62 个工具 · 8 个 profile · Go 1.22+ · 同步发布到 [PyPI](https://pypi.org/project/isetup/)
+> 最近同步：**2026-08-27** · 63 个工具 · 8 个 profile · Go 1.22+ · 同步发布到 [PyPI](https://pypi.org/project/isetup/)
 
 [English](README.md)
 
@@ -111,7 +111,7 @@ isetup install · interactive mode                    linux/amd64 · apt,pip,npm
       [x] git                   apt
       [ ] neovim                apt
 [x] ▶ 01-lang-runtimes                                   7/ 7 selected
-[ ] ▶ 04-ai-tools                                        0/ 7 selected
+[ ] ▶ 04-ai-tools                                        0/ 8 selected
 [·] ✗ 07-gpu                    no GPU detected          0/ 2 (disabled)
 
 ─────────────────────────────────────────────────────────────────────────────
@@ -143,7 +143,7 @@ isetup install · interactive mode                    linux/amd64 · apt,pip,npm
 
 ## 默认工具
 
-内置模板安装 **62 个工具**，分布在 8 个 profile 中：
+内置模板安装 **63 个工具**，分布在 8 个 profile 中：
 
 ### lang-runtimes — 语言运行时与版本管理
 
@@ -234,6 +234,7 @@ isetup install · interactive mode                    linux/amd64 · apt,pip,npm
 | claude-code | Anthropic Claude Code — 终端 AI 编程助手 |
 | codex-cli | OpenAI Codex CLI — AI 代码生成 |
 | cursor | Cursor AI 编辑器（CLI 安装器） |
+| herdr | 编码代理的持久终端运行时 |
 | yoyo | AI 代理自动审批 PTY 代理 |
 | arxs | 多源学术论文搜索 CLI |
 | ollama | 本地运行 LLM（Llama、Mistral 等） |

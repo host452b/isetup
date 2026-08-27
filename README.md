@@ -1,6 +1,6 @@
 # isetup
 
-> Last synced with code: **2026-04-23** · 62 tools · 8 profiles · Go 1.22+ · also on [PyPI](https://pypi.org/project/isetup/)
+> Last synced with code: **2026-08-27** · 63 tools · 8 profiles · Go 1.22+ · also on [PyPI](https://pypi.org/project/isetup/)
 
 [中文文档](README_zh.md)
 
@@ -112,7 +112,7 @@ isetup install · interactive mode                    linux/amd64 · apt,pip,npm
       [x] git                   apt
       [ ] neovim                apt
 [x] ▶ 01-lang-runtimes                                   7/ 7 selected
-[ ] ▶ 04-ai-tools                                        0/ 7 selected
+[ ] ▶ 04-ai-tools                                        0/ 8 selected
 [·] ✗ 07-gpu                    no GPU detected          0/ 2 (disabled)
 
 ─────────────────────────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ The interactive flow opts **out** when stdin isn't a TTY (CI, `curl | bash`) or 
 
 ## Default Tools
 
-The built-in template installs **62 tools** across 8 profiles:
+The built-in template installs **63 tools** across 8 profiles:
 
 ### lang-runtimes — Language Runtimes & Version Managers
 
@@ -237,6 +237,7 @@ The built-in template installs **62 tools** across 8 profiles:
 | claude-code | Anthropic Claude Code — AI coding assistant in terminal |
 | codex-cli | OpenAI Codex CLI — AI code generation |
 | cursor | Cursor AI editor (CLI installer) |
+| herdr | Persistent terminal runtime for coding agents |
 | yoyo | PTY proxy for AI agent auto-approve workflows |
 | arxs | Multi-source academic paper search CLI (`go install` preferred, shell fallback) |
 | ollama | Run LLMs locally (Llama, Mistral, etc.) |
@@ -358,7 +359,7 @@ profiles:
         apt: nvidia-cuda-toolkit
 ```
 
-> See `template/default.yaml` for the full 61-tool configuration.
+> See `template/default.yaml` for the full 63-tool configuration.
 
 ### Install Methods
 
@@ -418,14 +419,14 @@ OS: linux | Arch: amd64 | Shell: /bin/bash
 Package managers: apt, pip3, npm
 GPU: NVIDIA H200 NVL
 
-[1/61] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
-[1/61] nvm                  PASS    (shell ) 0.7s
-[2/61] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
-[2/61] node-lts             PASS    (shell ) 0.5s
-[3/61] git                  SKIP    already installed
-[4/61] Installing glab (shell: curl ... | sudo bash)...
-[4/61] glab                 PASS    (shell ) 2.1s
-[5/61] cuda-toolkit         FAILED  (apt   ) 1.1s
+[1/63] Installing nvm (shell: curl -o- https://nvm.sh/install.sh | bash)...
+[1/63] nvm                  PASS    (shell ) 0.7s
+[2/63] Installing node-lts (shell: source ~/.nvm/nvm.sh && nvm install --lts)...
+[2/63] node-lts             PASS    (shell ) 0.5s
+[3/63] git                  SKIP    already installed
+[4/63] Installing glab (shell: curl ... | sudo bash)...
+[4/63] glab                 PASS    (shell ) 2.1s
+[5/63] cuda-toolkit         FAILED  (apt   ) 1.1s
        E: Unable to locate package nvidia-cuda-toolkit
 
 ─────────────────────────────
@@ -608,7 +609,7 @@ Requires Go 1.22+.
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to add tools and submit PRs |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
 | [CLAUDE.md](CLAUDE.md) | Project rules for AI agents (coding conventions) |
-| [template/default.yaml](template/default.yaml) | Full 62-tool configuration (the source of truth) |
+| [template/default.yaml](template/default.yaml) | Full 63-tool configuration (the source of truth) |
 
 ## License
 
